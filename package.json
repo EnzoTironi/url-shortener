@@ -7,9 +7,9 @@
     "generate-jwks": "ts-node scripts/generate-jwks.ts",
     "lint": "nx run-many --target=lint --all",
     "lint:fix": "nx run-many --target=lint --all --fix",
-    "prisma:reset": "prisma migrate reset --schema=./libs/prisma-iam/prisma/schema.prisma && prisma migrate reset --schema=./libs/prisma-url/prisma/schema.prisma",
-    "prisma:generate": "prisma generate --schema=./libs/prisma-iam/prisma/schema.prisma && prisma generate --schema=./libs/prisma-url/prisma/schema.prisma",
-    "prisma:migrate": "prisma migrate dev --schema=./libs/prisma-iam/prisma/schema.prisma && prisma migrate dev --schema=./libs/prisma-url/prisma/schema.prisma"
+    "prisma:reset": "prisma migrate reset --schema=./libs/prisma-iam/src/prisma/schema.prisma && prisma migrate reset --schema=./libs/prisma-url/src/prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma && prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema=./libs/prisma-iam/src/prisma/schema.prisma && prisma migrate dev --schema=./libs/prisma-url/src/prisma/schema.prisma"
   },
   "private": true,
   "dependencies": {

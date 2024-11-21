@@ -23,7 +23,7 @@ RUN npm ci
 COPY . .
 
 # Generate Prisma Client
-RUN npx prisma generate --schema=./libs/prisma-iam/prisma/schema.prisma
+RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma
 
 # Build the app
 RUN npx nx build iam

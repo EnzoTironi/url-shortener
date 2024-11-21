@@ -23,7 +23,7 @@ RUN npm ci
 COPY . .
 
 # Generate Prisma Client
-RUN npx prisma generate --schema=./libs/prisma-url/prisma/schema.prisma
+RUN npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma
 
 # Run nx reset to clear cache
 RUN npx nx reset
