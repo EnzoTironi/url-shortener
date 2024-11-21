@@ -4,7 +4,7 @@ import {
   RoleType,
   Tenant,
   User,
-} from '@url-shortener/prisma-client-iam';
+} from '@url-shortener/prisma-iam';
 
 @Injectable()
 export class SeedRepository {

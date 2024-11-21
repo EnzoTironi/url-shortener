@@ -1,6 +1,6 @@
 import { CreateTenantDto, UpdateTenantDto } from './dtos';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@url-shortener/prisma-client-iam';
+import { PrismaService } from '@url-shortener/prisma-iam';
 import { Tenant } from '@database/iam';
 
 @Injectable()

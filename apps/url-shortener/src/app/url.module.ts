@@ -3,7 +3,7 @@ import { HealthModule } from './health/health.module';
 import { HttpModule } from '@nestjs/axios';
 import { LoggerModule } from '@url-shortener/logger';
 import { Module } from '@nestjs/common';
-import { PrismaClientUrlModule } from '@url-shortener/prisma-client-url';
+import { PrismaClientUrlModule } from '@url-shortener/prisma-url';
 import { ShortCodeService } from './utils';
 import { TerminusModule } from '@nestjs/terminus';
 import { UrlController } from './url.controller';

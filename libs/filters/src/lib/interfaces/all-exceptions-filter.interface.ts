@@ -1,5 +1,5 @@
 import { HttpException } from '@nestjs/common';
-import { Prisma } from '../../../../prisma-client-url/src';
+import { Prisma } from '../../../../prisma-url/src';
 
 export interface ErrorResponse {
   statusCode: number;
@@ -16,6 +16,14 @@ export interface ErrorContext {
   statusCode: number;
   timestamp: string;
   details?: unknown;
+}
+
+export interface LogContext extends Record<string, unknown> {
+  service: string;
+  path: string;
+  statusCode: number;
+  message: string;
+  error?: string;
 }
 
 export interface ErrorHandlers {

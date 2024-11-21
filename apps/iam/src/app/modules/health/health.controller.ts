@@ -7,7 +7,7 @@ import {
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
 import { LoggerService } from '@url-shortener/logger';
-import { PrismaService } from '@url-shortener/prisma-client-iam';
+import { PrismaService } from '@url-shortener/prisma-iam';
 @Controller('health')
 export class HealthController {
   constructor(

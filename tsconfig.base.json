@@ -7,6 +7,7 @@
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "esModuleInterop": true,
     "importHelpers": true,
     "target": "es2015",
     "module": "esnext",
@@ -19,15 +20,10 @@
       "@database/url": ["node_modules/@prisma/client/url"],
       "@url-shortener/filters": ["libs/filters/src"],
       "@url-shortener/logger": ["libs/logger/src"],
-      "@url-shortener/prisma-client-iam": [
-        "libs/prisma-client-iam/src/index.ts"
-      ],
-      "@url-shortener/prisma-client-url": [
-        "libs/prisma-client-url/src/index.ts"
-      ],
       "@url-shortener/prisma-iam": ["libs/prisma-iam/src/index.ts"],
       "@url-shortener/prisma-url": ["libs/prisma-url/src/index.ts"],
-      "@url-shortener/shared": ["libs/shared/src"]
+      "@url-shortener/shared": ["libs/shared/src"],
+      "@url-shortener/tracing": ["libs/tracing/src"]
     }
   },
   "exclude": ["node_modules", "tmp"]

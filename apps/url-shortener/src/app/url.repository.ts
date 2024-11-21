@@ -1,6 +1,6 @@
 import { CreateUrlDto } from './dtos';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@url-shortener/prisma-client-url';
+import { PrismaService } from '@url-shortener/prisma-url';
 import { url } from '@database/url';
 
 @Injectable()

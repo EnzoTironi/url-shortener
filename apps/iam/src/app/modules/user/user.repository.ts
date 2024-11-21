@@ -1,6 +1,6 @@
 import { CreateUserDto, UpdateUserDto } from './dtos';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@url-shortener/prisma-client-iam';
+import { PrismaService } from '@url-shortener/prisma-iam';
 import { RoleType, User } from '@database/iam';
 
 @Injectable()

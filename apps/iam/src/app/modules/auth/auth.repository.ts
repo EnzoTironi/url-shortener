@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { LoginDto } from './dtos';
-import { PrismaService, User } from '@url-shortener/prisma-client-iam';
+import { PrismaService, User } from '@url-shortener/prisma-iam';
 
 @Injectable()
 export class AuthRepository {

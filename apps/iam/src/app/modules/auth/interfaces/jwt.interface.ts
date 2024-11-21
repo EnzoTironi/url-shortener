@@ -1,4 +1,4 @@
-import { RoleType } from '@url-shortener/prisma-client-iam';
+import { RoleType } from '@url-shortener/prisma-iam';
 
 export interface IJwtPayload {
   sub: number;

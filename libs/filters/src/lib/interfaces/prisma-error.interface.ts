@@ -1,4 +1,4 @@
-import { Prisma } from '../../../../prisma-client-url/src';
+import { Prisma } from '../../../../prisma-url/src';
 
 export interface PrismaErrorResponse {
   code: string;

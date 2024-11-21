@@ -3,7 +3,7 @@ import { AuthRepository } from './auth.repository';
 import { AuthService } from './auth.service';
 import { Module } from '@nestjs/common';
 import { PasswordService } from '../utils/password.service';
-import { PrismaService } from '@url-shortener/prisma-client-iam';
+import { PrismaService } from '@url-shortener/prisma-iam';
 
 @Module({
   imports: [],

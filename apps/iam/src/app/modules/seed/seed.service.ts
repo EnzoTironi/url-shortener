@@ -2,7 +2,7 @@ import { ISeedService } from './interfaces/seed-service.interface';
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from '@url-shortener/logger';
 import { PasswordService } from '../utils/password.service';
-import { RoleType } from '@url-shortener/prisma-client-iam';
+import { RoleType } from '@url-shortener/prisma-iam';
 import { SeedRepository } from './seed.repository';
 
 @Injectable()

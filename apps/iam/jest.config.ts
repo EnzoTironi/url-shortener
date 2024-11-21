@@ -16,7 +16,7 @@ export default {
   coverageDirectory: '../../coverage/apps/iam',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
-    '^@database/(.*)$': '<rootDir>/../../libs/prisma-client-$1/src',
+    '^@database/(.*)$': '<rootDir>/../../libs/prisma-$1/src',
     '^@url-shortener/(.*)$': '<rootDir>/../../libs/$1/src',
   },
   transformIgnorePatterns: [

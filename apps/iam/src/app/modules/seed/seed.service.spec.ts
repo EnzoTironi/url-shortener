@@ -1,12 +1,12 @@
 import { LoggerService } from '@url-shortener/logger';
 import { PasswordService } from '../utils/password.service';
-import { RoleType } from '@url-shortener/prisma-client-iam';
+import { RoleType } from '@url-shortener/prisma-iam';
 import { SeedRepository } from './seed.repository';
 import { SeedService } from './seed.service';
 import { Test, TestingModule } from '@nestjs/testing';
 
 // Mock the actual RoleType from prisma client
-jest.mock('@url-shortener/prisma-client-iam', () => ({
+jest.mock('@url-shortener/prisma-iam', () => ({
   RoleType: {
     USER: 'USER',
     ADMIN: 'ADMIN',

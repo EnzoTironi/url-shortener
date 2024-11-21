@@ -6,7 +6,7 @@ import {
   PrismaHealthIndicator,
   HealthCheckResult,
 } from '@nestjs/terminus';
-import { PrismaService } from '@url-shortener/prisma-client-url';
+import { PrismaService } from '@url-shortener/prisma-url';
 import { LoggerService } from '@url-shortener/logger';
 
 @Controller('health')

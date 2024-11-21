@@ -13,7 +13,7 @@ jest.mock('pino', () => {
 });
 
 // Mock PrismaService
-jest.mock('@url-shortener/prisma-client-url', () => ({
+jest.mock('@url-shortener/prisma-url', () => ({
   PrismaService: jest.fn().mockImplementation(() => ({
     url: {
       create: jest.fn(),
