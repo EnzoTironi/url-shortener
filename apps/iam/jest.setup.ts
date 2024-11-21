@@ -1,6 +1,6 @@
 import { jest } from '@jest/globals';
-import { LoggerService } from '../../libs/shared/src/lib/logger/logger.service';
-import { RoleType } from '../../libs/prisma-client-iam/src';
+import { LoggerService } from '@url-shortener/logger';
+import { RoleType } from '@url-shortener/prisma-client-iam';
 
 // Mock pino
 jest.mock('pino', () => {

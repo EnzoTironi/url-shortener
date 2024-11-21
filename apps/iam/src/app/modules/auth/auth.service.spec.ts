@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { AuthRepository } from './auth.repository';
 import { PasswordService } from '../utils/password.service';
-import { LoggerService } from '@url-shortener/shared';
+import { LoggerService } from '@url-shortener/logger';
 import { UnauthorizedException } from '@nestjs/common';
 import { LoginDto } from './dtos';
 import { RoleType } from '@database/iam';
-import { mockLoggerService, createMockLoggerService } from '../../../../jest.setup';
+import { createMockLoggerService } from '../../../../jest.setup';
 
 describe('AuthService', () => {
   let service: AuthService;
