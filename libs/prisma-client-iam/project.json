@@ -1,7 +1,7 @@
 {
-  "name": "logger",
+  "name": "prisma-client-iam",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/logger/src",
+  "sourceRoot": "libs/prisma-client-iam/src",
   "projectType": "library",
   "targets": {
     "lint": {
@@ -11,7 +11,7 @@
       ],
       "options": {
         "lintFilePatterns": [
-          "libs/logger/**/*.ts"
+          "libs/prisma-client-iam/**/**/*.ts"
         ]
       }
     },
@@ -21,16 +21,12 @@
         "{workspaceRoot}/coverage/{projectRoot}"
       ],
       "options": {
-        "jestConfig": "libs/logger/jest.config.ts",
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
+        "jestConfig": "libs/prisma-client-iam/jest.config.ts"
       }
     }
   },
-  "tags": []
+  "tags": [],
+  "implicitDependencies": [
+    "prisma-iam"
+  ]
 }

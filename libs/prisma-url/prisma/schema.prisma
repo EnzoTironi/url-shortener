@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../../../node_modules/@prisma/client/url"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL_URL")
+}
+
+model url {
+  id          String    @id @default(cuid()) // Unique identifier
+  originalUrl String
+  shortCode   String    @unique // Unique index for shortCode
+  clickCount  Int       @default(0) // Default value for clickCount
+  userId      String? // Optional userId field
+  createdAt   DateTime  @default(now()) // Timestamp for creation
+  updatedAt   DateTime  @updatedAt // Timestamp for last update
+  deletedAt   DateTime? // Optional timestamp for soft delete
+
+  @@map("urls") // Maps the model to the 'urls' table in the database
+}

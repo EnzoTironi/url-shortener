@@ -24,3 +24,60 @@ services:
       - NODE_ENV=${NODE_ENV}
     networks:
       - shortener-network
+
+  # IAM Database - PostgreSQL database for IAM service
+  iam-db:
+    image: postgres:${POSTGRES_VERSION:-14-alpine}
+    environment:
+      - POSTGRES_DB=${IAM_DB_NAME:-iam_db}
+      - POSTGRES_USER=${IAM_DB_USER:-iam_user}
+      - POSTGRES_PASSWORD=${IAM_DB_PASSWORD}
+    volumes:
+      - iam-db-data:/var/lib/postgresql/data
+    networks:
+      - shortener-network
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${IAM_DB_USER:-iam_user} -d ${IAM_DB_NAME:-iam_db}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # URL Database - PostgreSQL database for URL shortener service
+  url-db:
+    image: postgres:${POSTGRES_VERSION:-14-alpine}
+    environment:
+      - POSTGRES_DB=${URL_DB_NAME:-url_db}
+      - POSTGRES_USER=${URL_DB_USER:-url_user}
+      - POSTGRES_PASSWORD=${URL_DB_PASSWORD}
+    volumes:
+      - url-db-data:/var/lib/postgresql/data
+    networks:
+      - shortener-network
+    restart: unless-stopped
+    ports:
+      - '5433:5432'
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${URL_DB_USER:-url_user} -d ${URL_DB_NAME:-url_db}',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  iam-db-data:
+  url-db-data:
+networks:
+  shortener-network:
+    driver: bridge

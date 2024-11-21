@@ -6,7 +6,10 @@
     "prepare": "husky install",
     "generate-jwks": "ts-node scripts/generate-jwks.ts",
     "lint": "nx run-many --target=lint --all",
-    "lint:fix": "nx run-many --target=lint --all --fix"
+    "lint:fix": "nx run-many --target=lint --all --fix",
+    "prisma:reset": "prisma migrate reset --schema=./libs/prisma-iam/prisma/schema.prisma && prisma migrate reset --schema=./libs/prisma-url/prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema=./libs/prisma-iam/prisma/schema.prisma && prisma generate --schema=./libs/prisma-url/prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema=./libs/prisma-iam/prisma/schema.prisma && prisma migrate dev --schema=./libs/prisma-url/prisma/schema.prisma"
   },
   "private": true,
   "dependencies": {
@@ -19,6 +22,7 @@
     "pino": "^9.5.0",
     "pino-pretty": "^13.0.0",
     "pino-socket": "^7.4.0",
+    "prisma": "^5.22.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0"
   },
@@ -39,6 +43,7 @@
     "@nx/web": "20.1.1",
     "@nx/webpack": "20.1.1",
     "@nx/workspace": "20.1.1",
+    "@prisma/client": "^5.22.0",
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
