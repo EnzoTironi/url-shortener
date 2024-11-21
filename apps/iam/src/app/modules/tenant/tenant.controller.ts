@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common';
 import { TenantService } from './tenant.service';
 import { CreateTenantDto, UpdateTenantDto } from './dtos';
-import { UserHeaders } from '../auth/decorators/user-header.decorator';
-import { UserJWT } from '../auth/dtos';
+import { UserHeaders } from '@url-shortener/shared';
+import { UserJWT } from '@url-shortener/shared';
 import { ITenantController } from './interfaces/tenant-controller.interface';
 
 @Controller('tenant')

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, UpdateRoleDto } from './dtos';
-import { UserJWT } from '../auth/dtos';
+import { UserJWT } from '@url-shortener/shared';
 import { RoleType } from '@database/iam';
 
 describe('UserController', () => {

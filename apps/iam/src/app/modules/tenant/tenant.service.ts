@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { CreateTenantDto, UpdateTenantDto } from './dtos';
 import { RoleType, Tenant } from '@database/iam';
-import { UserJWT } from '../auth/dtos';
+import { UserJWT } from '@url-shortener/shared';
 import { LoggerService } from '@url-shortener/logger';
 import { ITenantService } from './interfaces/tenant-service.interface';
 import { TenantRepository } from './tenant.repository';

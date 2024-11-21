@@ -6,7 +6,7 @@ import {
 import { CreateUserDto, UpdateRoleDto, UpdateUserDto } from './dtos/';
 import { PasswordService } from '../utils/password.service';
 import { RoleType } from '@database/iam';
-import { UserJWT } from '../auth/dtos';
+import { UserJWT } from '@url-shortener/shared';
 import { LoggerService } from '@url-shortener/logger';
 import { IUserService } from './interfaces/user-service.interface';
 import { User } from '@database/iam';

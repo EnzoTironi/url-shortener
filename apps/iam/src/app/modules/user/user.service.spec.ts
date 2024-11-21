@@ -4,12 +4,10 @@ import { UserRepository } from './user.repository';
 import { PasswordService } from '../utils/password.service';
 import { LoggerService } from '@url-shortener/logger';
 import { CreateUserDto, UpdateUserDto, UpdateRoleDto } from './dtos';
-import { UserJWT } from '../auth/dtos';
+import { UserJWT } from '@url-shortener/shared';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { User, RoleType } from '@database/iam';
 import {
-  mockLoggerService,
-  mockUserInfo,
   createMockLoggerService,
 } from '../../../../jest.setup';
 

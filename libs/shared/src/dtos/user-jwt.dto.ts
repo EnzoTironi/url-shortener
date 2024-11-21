@@ -4,6 +4,6 @@ export class UserJWT {
   userId?: string;
   userToken?: string;
   userRoles?: RoleType;
-  userHost: string;
+  userHost!: string;
   tenantId?: string;
 }

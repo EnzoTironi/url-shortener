@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TenantController } from './tenant.controller';
 import { TenantService } from './tenant.service';
 import { CreateTenantDto, UpdateTenantDto } from './dtos';
-import { UserJWT } from '../auth/dtos';
+import { UserJWT } from '@url-shortener/shared';
 
 describe('TenantController', () => {
   let controller: TenantController;
