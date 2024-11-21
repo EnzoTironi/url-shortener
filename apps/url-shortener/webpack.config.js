@@ -17,4 +17,8 @@ module.exports = {
       generatePackageJson: true,
     }),
   ],
+  externals: {
+    'class-validator': 'commonjs class-validator',
+    'class-transformer': 'commonjs class-transformer',
+  },
 };

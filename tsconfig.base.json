@@ -12,16 +12,20 @@
     "target": "es2015",
     "module": "esnext",
     "lib": ["es2020", "dom"],
+    "strict": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@database/iam": ["node_modules/@prisma/client/iam"],
       "@database/url": ["node_modules/@prisma/client/url"],
+      "@url-shortener/api-gateway-middleware": [
+        "libs/api-gateway-middleware/src"
+      ],
       "@url-shortener/filters": ["libs/filters/src"],
       "@url-shortener/logger": ["libs/logger/src"],
-      "@url-shortener/prisma-iam": ["libs/prisma-iam/src/index.ts"],
-      "@url-shortener/prisma-url": ["libs/prisma-url/src/index.ts"],
+      "@url-shortener/prisma-iam": ["libs/prisma-iam/src"],
+      "@url-shortener/prisma-url": ["libs/prisma-url/src"],
       "@url-shortener/shared": ["libs/shared/src"],
       "@url-shortener/tracing": ["libs/tracing/src"]
     }

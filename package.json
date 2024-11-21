@@ -17,7 +17,15 @@
     "kind:delete": "kind delete cluster --name url-shortener || true",
     "dev:setup": "npm run tf:init && npm run tf:plan && npm run tf:apply",
     "dev:clean": "npm run tf:destroy",
-    "dev:rebuild": "npm run dev:clean && npm run dev:setup"
+    "dev:rebuild": "npm run dev:clean && npm run dev:setup",
+    "infra:init": "cd tools/terraform/kind && terraform init",
+    "infra:plan": "cd tools/terraform/kind && terraform plan",
+    "infra:up": "cd tools/terraform/kind && terraform apply -auto-approve",
+    "infra:down": "cd tools/terraform/kind && terraform destroy -auto-approve",
+    "infra:clean": "kind delete clusters url-shortener-cluster",
+    "k8s:deploy": "npm run infra:up",
+    "k8s:deploy:all": "npm run infra:init && npm run infra:clean && npm run infra:up",
+    "k8s:reset": "npm run infra:down && npm run infra:clean && npm run k8s:deploy:all"
   },
   "private": true,
   "dependencies": {
@@ -44,6 +52,8 @@
     "@prisma/instrumentation": "^5.22.0",
     "argon2": "^0.41.1",
     "axios": "^1.6.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.1",
     "nestjs-pino": "^4.1.0",
     "node-jose": "^2.2.0",
     "pino": "^9.5.0",

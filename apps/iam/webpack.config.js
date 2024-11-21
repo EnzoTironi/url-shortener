@@ -17,4 +17,5 @@ module.exports = {
       generatePackageJson: true,
     }),
   ],
+  externals: ['class-validator', 'class-transformer', '@nestjs/common'],
 };

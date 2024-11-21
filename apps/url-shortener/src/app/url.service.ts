@@ -4,17 +4,18 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUrlDto, UpdateUrlDto } from './dtos';
-import { IUrlService } from './interfaces/url-service.interface';
+import { IUrlService } from './interfaces/url.interface';
 import { LoggerService } from '@url-shortener/logger';
 import { ShortCodeService } from './utils/short-code.service';
 import { UrlRepository } from './url.repository';
 import { UserJWT } from '@url-shortener/shared';
 import { url } from '@database/url';
-
-type UrlResponse = Pick<url, 'id' | 'shortCode' | 'originalUrl'>;
-type UrlCreationResponse = { urlId: string; shortUrl: string };
-type OriginalUrlResponse = { originalUrl: string };
-type UserIdResponse = { userId: string };
+import {
+  UrlCreationResponse,
+  UrlResponse,
+  OriginalUrlResponse,
+  UserIdResponse,
+} from './interfaces/url.interface';
 
 @Injectable()
 export class UrlService implements IUrlService {
@@ -90,12 +91,17 @@ export class UrlService implements IUrlService {
     return url;
   }
 
-  async countAccess(shortCode: string): Promise<void> {
+  async incrementClickCount(shortCode: string): Promise<void> {
     await this.urlRepository.incrementClickCount(shortCode);
     this.logger.log(
       `Incremented click count for URL with short code: ${shortCode}`,
       'UrlService'
     );
+    return;
+  }
+
+  async countAccess(shortCode: string): Promise<void> {
+    await this.incrementClickCount(shortCode);
   }
 
   // Helper Methods
@@ -104,6 +110,7 @@ export class UrlService implements IUrlService {
       id: url.id,
       shortCode: url.shortCode,
       originalUrl: url.originalUrl,
+      clickCount: url.clickCount,
     };
   }
 

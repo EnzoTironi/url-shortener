@@ -25,34 +25,12 @@
               }
             },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
       ],
       "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "email",
-            "password",
-            "tenantId"
-          ],
-          "properties": {
-            "email": {
-              "type": "string",
-              "format": "email"
-            },
-            "password": {
-              "type": "string",
-              "minLength": 1
-            },
-            "tenantId": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        },
         "auth/signer": {
           "alg": "RS256",
           "kid": "kid1",
@@ -166,7 +144,7 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
@@ -197,31 +175,7 @@
             }
           }
         }
-      ],
-      "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "email",
-            "password",
-            "tenantId"
-          ],
-          "properties": {
-            "email": {
-              "type": "string",
-              "format": "email"
-            },
-            "password": {
-              "type": "string",
-              "minLength": 1
-            },
-            "tenantId": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        }
-      }
+      ]
     },
     {
       "endpoint": "/user/{id}",
@@ -256,18 +210,6 @@
         }
       ],
       "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "email"
-          ],
-          "properties": {
-            "email": {
-              "type": "string",
-              "format": "email"
-            }
-          }
-        },
         "auth/validator": {
           "alg": "RS256",
           "jwk_local_path": "./certs/jwks.json",
@@ -377,23 +319,6 @@
         }
       ],
       "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "name",
-            "subDomain"
-          ],
-          "properties": {
-            "name": {
-              "type": "string",
-              "minLength": 1
-            },
-            "subDomain": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        },
         "auth/validator": {
           "alg": "RS256",
           "jwk_local_path": "./certs/jwks.json",
@@ -448,18 +373,6 @@
         }
       ],
       "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "name"
-          ],
-          "properties": {
-            "name": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        },
         "auth/validator": {
           "alg": "RS256",
           "jwk_local_path": "./certs/jwks.json",
@@ -564,31 +477,20 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service-create"
+              "return_error_code": true
             }
           }
         },
         {
-          "url_pattern": "url/add-user-id/{resp0_urlId.urlId}",
+          "url_pattern": "url/add-user-id/{resp0_data.urlId}",
           "host": [
             "http://krakend:8080"
           ],
+          "target": "data",
           "extra_config": {}
         }
       ],
       "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "originalUrl"
-          ],
-          "properties": {
-            "originalUrl": {
-              "type": "string",
-              "format": "uri"
-            }
-          }
-        },
         "proxy": {
           "sequential": true
         }
@@ -621,7 +523,7 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
@@ -675,24 +577,12 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
       ],
       "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "url"
-          ],
-          "properties": {
-            "url": {
-              "type": "string",
-              "format": "uri"
-            }
-          }
-        },
         "auth/validator": {
           "alg": "RS256",
           "jwk_local_path": "./certs/jwks.json",
@@ -717,7 +607,7 @@
     {
       "endpoint": "/urls",
       "method": "GET",
-      "output_encoding": "json-collection",
+      "output_encoding": "no-op",
       "input_headers": [
         "Authorization",
         "Content-Type",
@@ -728,7 +618,7 @@
       "backend": [
         {
           "url_pattern": "api/url/user/all",
-          "encoding": "json",
+          "encoding": "no-op",
           "is_collection": true,
           "host": [
             "http://url-shortener:3002"
@@ -744,7 +634,7 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
@@ -798,7 +688,7 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
@@ -852,7 +742,7 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
@@ -899,8 +789,7 @@
               }
             },
             "backend/http": {
-              "return_error_code": true,
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
@@ -933,7 +822,7 @@
               }
             },
             "backend/http": {
-              "return_error_details": "url_shortener_service"
+              "return_error_code": true
             }
           }
         }
@@ -993,22 +882,6 @@
         }
       ],
       "extra_config": {
-        "validation/json-schema": {
-          "type": "object",
-          "required": [
-            "role"
-          ],
-          "properties": {
-            "role": {
-              "type": "string",
-              "enum": [
-                "ADMIN",
-                "USER",
-                "TENANT_ADMIN"
-              ]
-            }
-          }
-        },
         "auth/validator": {
           "alg": "RS256",
           "jwk_local_path": "./certs/jwks.json",

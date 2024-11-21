@@ -238,12 +238,12 @@ describe('UrlService', () => {
     });
   });
 
-  describe('countAccess', () => {
+  describe('Increment CLick Count', () => {
     it('should increment access count and log the action', async () => {
       const updatedUrl = { ...mockUrl, clickCount: mockUrl.clickCount + 1 };
       mockUrlRepository.incrementClickCount.mockResolvedValue(updatedUrl);
 
-      await service.countAccess('abc123');
+      await service.incrementClickCount('abc123');
 
       expect(repository.incrementClickCount).toHaveBeenCalledWith('abc123');
       expect(loggerService.log).toHaveBeenCalledWith(

@@ -4,11 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto, UpdateRoleDto, UpdateUserDto } from './dtos/';
+import { Actions, UserJWT } from '@url-shortener/shared';
 import { IUserService } from './interfaces/user-service.interface';
 import { LoggerService } from '@url-shortener/logger';
 import { PasswordService } from '../utils/password.service';
 import { RoleType, User } from '@database/iam';
-import { UserJWT } from '@url-shortener/shared';
 import { UserRepository } from './user.repository';
 
 @Injectable()
@@ -22,8 +22,9 @@ export class UserService implements IUserService {
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = await this.hashPassword(createUserDto.password);
     const user = await this.userRepository.create({
-      ...createUserDto,
+      email: createUserDto.email,
       password: hashedPassword,
+      tenantId: createUserDto.tenantId,
     });
 
     this.logger.log(`User created with ID: ${user.id}`, 'UserService');
@@ -32,7 +33,7 @@ export class UserService implements IUserService {
 
   async update(id: string, updateUserDto: UpdateUserDto, userInfo: UserJWT) {
     const user = await this.findUser(id);
-    await this.verifyUserAccess(user, userInfo);
+    this.verifyAccess(user, userInfo, Actions.UPDATE);
 
     const updatedUser = await this.userRepository.update(id, updateUserDto);
 
@@ -42,7 +43,7 @@ export class UserService implements IUserService {
 
   async softDelete(id: string, userInfo: UserJWT) {
     const user = await this.findUser(id);
-    await this.verifyDeleteAccess(user, userInfo);
+    this.verifyAccess(user, userInfo, Actions.DELETE);
 
     const deletedUser = await this.userRepository.softDelete(id);
 
@@ -52,7 +53,7 @@ export class UserService implements IUserService {
 
   async updateRole(updateRoleDto: UpdateRoleDto, userInfo: UserJWT) {
     const user = await this.findUser(userInfo.userId!);
-    await this.verifyRoleUpdateAccess(user, userInfo);
+    this.verifyAccess(user, userInfo, Actions.ROLE);
 
     const updatedUser = await this.userRepository.updateRole(
       userInfo.userId!,
@@ -65,69 +66,43 @@ export class UserService implements IUserService {
 
   private async findUser(id: string) {
     const user = await this.userRepository.findById(id);
+    const isNotDeleted = user?.deletedAt === null;
 
-    if (!user || user.deletedAt !== null) {
-      this.logger.warn(`User not found: ${id}`, 'UserService');
-      throw new NotFoundException('User not found');
-    }
+    if (user && isNotDeleted) return user;
 
-    return user;
+    this.logger.warn(`User not found: ${id}`, 'UserService');
+    throw new NotFoundException('User not found');
   }
 
   private async hashPassword(password: string) {
     return await this.passwordService.hashPassword(password);
   }
 
-  private async verifyUserAccess(user: any, userInfo: UserJWT) {
-    if (user?.id !== userInfo.userId) {
-      this.logger.warn(
-        `Unauthorized user update attempt: User ${userInfo.userId}`,
-        'UserService'
-      );
-      throw new ForbiddenException('You are not allowed to update this user');
-    }
+  private verifyAccess(user: User, userInfo: UserJWT, action?: Actions) {
+    const isAdmin = userInfo.userRoles === RoleType.ADMIN;
+    const isSameTenantAdmin =
+      userInfo.userRoles === RoleType.TENANT_ADMIN &&
+      user.tenantId === userInfo.tenantId;
+    const isSelfAction = user.id === userInfo.userId;
+    const isNotRoleAction = action !== Actions.ROLE;
+    // Admin has full access
+    if (isAdmin) return;
 
-    if (user?.tenantId !== userInfo.tenantId) {
-      this.logger.warn(
-        `Cross-tenant update attempt from tenant ${userInfo.tenantId}`,
-        'UserService'
-      );
-      throw new ForbiddenException('You are not allowed to update this user');
-    }
+    // Tenant admin can manage users in their tenant, except roles
+    if (isSameTenantAdmin && isNotRoleAction) return;
+
+    // Regular users can only manage themselves, except for role updates
+    if (isSelfAction && isNotRoleAction) return;
+
+    this.throwUnauthorizedError(userInfo.userId!);
   }
 
-  private async verifyDeleteAccess(user: any, userInfo: UserJWT) {
-    const isAdmin = userInfo?.userRoles?.includes(RoleType.ADMIN);
-    const isSelfDelete = user?.id === userInfo.userId;
-
-    if (!isAdmin && !isSelfDelete) {
-      this.logger.warn(
-        `Unauthorized user deletion attempt: User ${userInfo.userId}`,
-        'UserService'
-      );
-      throw new ForbiddenException('You are not allowed to delete this user');
-    }
-  }
-
-  private async verifyRoleUpdateAccess(user: any, userInfo: UserJWT) {
-    const isAdmin = userInfo?.userRoles?.includes(RoleType.ADMIN);
-    const isTenantAdmin = userInfo?.userRoles?.includes(RoleType.TENANT_ADMIN);
-
-    if (!isAdmin && !isTenantAdmin) {
-      this.logger.warn(
-        `Unauthorized role update attempt: User ${userInfo.userId}`,
-        'UserService'
-      );
-      throw new ForbiddenException('You are not allowed to update roles');
-    }
-
-    if (user?.tenantId !== userInfo.tenantId) {
-      this.logger.warn(
-        `Cross-tenant role update attempt from tenant ${userInfo.tenantId}`,
-        'UserService'
-      );
-      throw new ForbiddenException('You are not allowed to update this user');
-    }
+  private throwUnauthorizedError(userId: string): never {
+    this.logger.warn(
+      `Unauthorized access attempt: User ${userId}`,
+      'UserService'
+    );
+    throw new ForbiddenException('You are not allowed to perform this action');
   }
 
   private formatUserResponse(
