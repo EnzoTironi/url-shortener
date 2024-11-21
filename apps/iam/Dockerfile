@@ -13,13 +13,14 @@ COPY package*.json ./
 COPY nx.json ./
 COPY tsconfig*.json ./
 
+# Install dependencies and generate Prisma client
+RUN npm ci
+
 COPY . .
 
-# Install dependencies and generate Prisma client
-RUN npm ci && \
-  npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma && \
-  npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma && \
-  npx nx build iam --verbose
+RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma 
+RUN npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma 
+RUN npx nx build iam --verbose
 
 # Final stage
 FROM node:18-alpine

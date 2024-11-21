@@ -23,8 +23,11 @@ services:
       - '${IAM_SERVICE_PORT:-3001}:3001'
     environment:
       - NODE_ENV=${NODE_ENV:-development}
+      - API_KEY=${API_KEY}
       - DATABASE_URL_IAM=${DATABASE_URL_IAM}
       - IAM_SERVICE_URL=${IAM_SERVICE_URL}
+      - OTLP_COLLECTOR_ENDPOINT=${OTLP_COLLECTOR_ENDPOINT:-http://jaeger:4318/v1/traces}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
     depends_on:
       iam-db:
         condition: service_healthy
@@ -47,8 +50,11 @@ services:
       - '${URL_SERVICE_PORT:-3002}:3002'
     environment:
       - NODE_ENV=${NODE_ENV:-development}
+      - API_KEY=${API_KEY}
       - DATABASE_URL_URL=${DATABASE_URL_URL}
       - URL_SERVICE_URL=${URL_SERVICE_URL}
+      - OTLP_COLLECTOR_ENDPOINT=${OTLP_COLLECTOR_ENDPOINT:-http://jaeger:4318/v1/traces}
+      - ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-http://elasticsearch:9200}
     depends_on:
       url-db:
         condition: service_healthy
@@ -112,9 +118,76 @@ services:
       retries: 5
       start_period: 10s
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - 'ES_JAVA_OPTS=-Xms1g -Xmx1g'
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    networks:
+      - shortener-network
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:9200 || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.15.0
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    networks:
+      - shortener-network
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - '5601:5601'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:5601 || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.63.0
+    container_name: jaeger
+    networks:
+      - shortener-network
+    environment:
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - ES_SERVER_URLS=http://elasticsearch:9200
+    ports:
+      - '5775:5775/udp'
+      - '6831:6831/udp'
+      - '6832:6832/udp'
+      - '5778:5778'
+      - '16686:16686'
+      - '14268:14268'
+      - '14250:14250'
+      - '4317:4317'
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:14268 || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 volumes:
   iam-db-data:
   url-db-data:
+  elasticsearch-data:
 
 networks:
   shortener-network:

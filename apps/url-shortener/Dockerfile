@@ -13,17 +13,17 @@ COPY package*.json ./
 COPY nx.json ./
 COPY tsconfig*.json ./
 
+# Install all dependencies including workspace packages and generate Prisma clients
+RUN npm ci
+
 # Copy source code for libs and apps
 COPY libs/ ./libs/
 COPY apps/ ./apps/
-
 COPY . .
 
-# Install all dependencies including workspace packages and generate Prisma clients
-RUN npm ci && \
-    npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma && \
-    npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma && \
-    npx nx build url-shortener --verbose
+RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma 
+RUN npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma 
+RUN npx nx build url-shortener --verbose
 
 # Final stage
 FROM node:18-alpine

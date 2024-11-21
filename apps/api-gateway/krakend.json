@@ -15,6 +15,15 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "iam_service"
             }
@@ -72,8 +81,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -111,8 +129,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -129,6 +156,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service"
             }
@@ -147,8 +183,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -195,8 +240,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -252,8 +306,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -298,8 +361,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -360,8 +432,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -417,8 +498,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -464,6 +554,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service-create"
             }
@@ -512,6 +611,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service"
             }
@@ -557,6 +665,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service"
             }
@@ -617,6 +734,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service"
             }
@@ -662,6 +788,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service"
             }
@@ -707,6 +842,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service"
             }
@@ -745,7 +889,17 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
+              "return_error_code": true,
               "return_error_details": "url_shortener_service"
             }
           }
@@ -769,6 +923,15 @@
             "http://url-shortener:3002"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
               "return_error_details": "url_shortener_service"
             }
@@ -814,8 +977,17 @@
             "http://iam:3001"
           ],
           "extra_config": {
+            "modifier/martian": {
+              "header.Modifier": {
+                "scope": [
+                  "request"
+                ],
+                "name": "x-api-key",
+                "value": "your_api_key"
+              }
+            },
             "backend/http": {
-              "return_error_details": "iam_service"
+              "return_error_code": true
             }
           }
         }
@@ -860,16 +1032,31 @@
     }
   ],
   "extra_config": {
+    "security/cors": {
+      "allow_origins": [
+        "*"
+      ],
+      "expose_headers": [
+        "Content-Length"
+      ],
+      "max_age": "12h",
+      "allow_methods": [
+        "GET",
+        "HEAD",
+        "POST",
+        "PUT",
+        "DELETE"
+      ]
+    },
+    "router": {
+      "return_error_msg": true
+    },
     "telemetry/logging": {
       "level": "INFO",
       "@comment": "Prefix should always be inside [] to keep the grok expression working",
       "prefix": "[KRAKEND]",
       "syslog": false,
       "stdout": true
-    },
-    "telemetry/gelf": {
-      "address": "logstash:12201",
-      "enable_tcp": false
     }
   }
 }
