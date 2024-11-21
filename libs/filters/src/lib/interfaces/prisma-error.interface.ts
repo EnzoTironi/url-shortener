@@ -1,4 +1,4 @@
-import { PrismaClientKnownRequestError, PrismaClientValidationError } from '@prisma/client/runtime/library';
+import { Prisma } from '../../../../prisma-client-url/src';
 
 export interface PrismaErrorResponse {
   code: string;
@@ -11,9 +11,11 @@ export interface PrismaErrorResponse {
   message: string;
 }
 
-export function isPrismaError(error: unknown): error is PrismaClientKnownRequestError {
+export function isPrismaError(
+  error: unknown
+): error is Prisma.PrismaClientKnownRequestError {
   return (
-    error instanceof PrismaClientKnownRequestError ||
+    error instanceof Prisma.PrismaClientKnownRequestError ||
     (error !== null &&
       typeof error === 'object' &&
       'code' in error &&
@@ -23,6 +25,8 @@ export function isPrismaError(error: unknown): error is PrismaClientKnownRequest
   );
 }
 
-export function isPrismaValidationError(error: unknown): error is PrismaClientValidationError {
-  return error instanceof PrismaClientValidationError;
-} 
+export function isPrismaValidationError(
+  error: unknown
+): error is Prisma.PrismaClientValidationError {
+  return error instanceof Prisma.PrismaClientValidationError;
+}

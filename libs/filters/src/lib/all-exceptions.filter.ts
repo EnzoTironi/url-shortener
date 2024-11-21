@@ -8,10 +8,7 @@ import {
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { LoggerService } from '../../../logger/src';
-import {
-  PrismaClientKnownRequestError,
-  PrismaClientValidationError,
-} from '@prisma/client/runtime/library';
+import { Prisma } from '../../../prisma-client-url/src';
 import {
   isPrismaError,
   isPrismaValidationError,
@@ -56,13 +53,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private handleError(exception: unknown, path: string) {
     if (isPrismaError(exception)) {
       return this.handlePrismaKnownError(
-        exception as PrismaClientKnownRequestError,
+        exception as Prisma.PrismaClientKnownRequestError,
         path
       );
     }
     if (isPrismaValidationError(exception)) {
       return this.handlePrismaValidationError(
-        exception as PrismaClientValidationError,
+        exception as Prisma.PrismaClientValidationError,
         path
       );
     }
@@ -73,7 +70,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   private handlePrismaKnownError(
-    exception: PrismaClientKnownRequestError,
+    exception: Prisma.PrismaClientKnownRequestError,
     path: string
   ) {
     this.logger.error('AllExceptionsFilter', exception);
@@ -95,7 +92,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   private handlePrismaValidationError(
-    exception: PrismaClientValidationError,
+    exception: Prisma.PrismaClientValidationError,
     path: string
   ) {
     return {
