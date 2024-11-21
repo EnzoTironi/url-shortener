@@ -35,6 +35,7 @@ export class UrlService implements IUrlService {
     });
 
     this.logger.log(`Created URL with ID: ${createdUrl.id}`, 'UrlService');
+    //KRAKEND COMMUNITY, does not support redirecting
     return {
       urlId: createdUrl.id,
       shortUrl: `${userInfo.userHost}/url/${shortCode}`,

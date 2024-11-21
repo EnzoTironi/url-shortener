@@ -454,6 +454,7 @@
         "Content-Type",
         "X-User-Id",
         "X-User-Roles",
+        "X-Forwarded-Host",
         "X-Tenant-Id"
       ],
       "backend": [

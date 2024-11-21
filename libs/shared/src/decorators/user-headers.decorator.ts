@@ -7,7 +7,7 @@ export const UserHeaders = createParamDecorator(
     return {
       userId: request.headers['x-user-id'] || null,
       userRoles: request.headers['x-user-roles'] || null,
-      userHost: request.headers.host,
+      userHost: request.headers['x-forwarded-host'] || null,
       tenantId: request.headers['x-tenant-id'] || null,
     };
   }
