@@ -3,8 +3,19 @@ export default {
   preset: '../../jest.preset.js',
   testEnvironment: 'node',
   transform: {
-    '^.+\\.[tj]s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.spec.json' }]
+    '^.+\\.[tj]s$': ['ts-jest', { 
+      tsconfig: '<rootDir>/tsconfig.spec.json',
+      useESM: true,
+    }],
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
-  coverageDirectory: '../../coverage/apps/url-shortener'
+  coverageDirectory: '../../coverage/apps/url-shortener',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  moduleNameMapper: {
+    '^@database/(.*)$': '<rootDir>/../../libs/prisma-client-$1/src',
+    '^@url-shortener/(.*)$': '<rootDir>/../../libs/$1/src'
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@prisma|@database|@url-shortener)/)',
+  ],
 };
