@@ -54,6 +54,776 @@
           "disable_jwk_security": true
         }
       }
+    },
+    {
+      "endpoint": "/auth/claims",
+      "method": "GET",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/auth/claims",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "@comment": "IAM - Health Check Module",
+      "endpoint": "/iam/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "api/health",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "@comment": "URL - Health Check Module",
+      "endpoint": "/url/health",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "api/health",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "@comment": "IAM - User Management Module",
+      "endpoint": "/user",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "api/user",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "email",
+            "password",
+            "tenantId"
+          ],
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "password": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tenantId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    {
+      "endpoint": "/user/{id}",
+      "method": "PUT",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/user/{id}",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "email"
+          ],
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        },
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/user/{id}",
+      "method": "DELETE",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/user/{id}",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "@comment": "IAM - Tenant Management Module",
+      "endpoint": "/tenant",
+      "method": "POST",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/tenant",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "name",
+            "subDomain"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "subDomain": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/tenant/{id}",
+      "method": "PUT",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/tenant/{id}",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/tenant/{id}",
+      "method": "DELETE",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/tenant/{id}",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "@comment": "URL - Management Module",
+      "endpoint": "/url",
+      "method": "POST",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/url",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service-create"
+            }
+          }
+        },
+        {
+          "url_pattern": "url/add-user-id/{resp0_urlId.urlId}",
+          "host": [
+            "http://krakend:8080"
+          ],
+          "extra_config": {}
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "originalUrl"
+          ],
+          "properties": {
+            "originalUrl": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "proxy": {
+          "sequential": true
+        }
+      }
+    },
+    {
+      "endpoint": "/url/add-user-id/{urlId}",
+      "method": "POST",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/url/add-user-id/{urlId}",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/url/{urlId}",
+      "method": "PATCH",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/url/{urlId}",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "url"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        },
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/urls",
+      "method": "GET",
+      "output_encoding": "json-collection",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/url/user/all",
+          "encoding": "json",
+          "is_collection": true,
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/url/{urlId}",
+      "method": "DELETE",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/url/{urlId}",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/url/{shortCode}",
+      "method": "GET",
+      "backend": [
+        {
+          "url_pattern": "api/url/{shortCode}",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "endpoint": "/url/count-access/{shortCode}",
+      "method": "GET",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/url/count-access/{shortCode}",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "endpoint": "/user/role",
+      "method": "PUT",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/user/role",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "role"
+          ],
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "USER",
+                "TENANT_ADMIN"
+              ]
+            }
+          }
+        },
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
     }
-  ]
+  ],
+  "extra_config": {
+    "telemetry/logging": {
+      "level": "INFO",
+      "@comment": "Prefix should always be inside [] to keep the grok expression working",
+      "prefix": "[KRAKEND]",
+      "syslog": false,
+      "stdout": true
+    },
+    "telemetry/gelf": {
+      "address": "logstash:12201",
+      "enable_tcp": false
+    }
+  }
 }

@@ -1,29 +1,91 @@
 services:
-  # API Gateway - Handles API requests and routes them to the appropriate service
+  # API Gateway - KrakenD handles routing, authentication, and rate limiting
   krakend:
-    image: devopsfaith/krakend:latest
+    image: devopsfaith/krakend:${KRAKEND_VERSION:-latest}
     volumes:
       - ./apps/api-gateway/krakend.json:/etc/krakend/krakend.json
       - ./certs:/etc/krakend/certs
     ports:
-      - '${KRAKEND_PORT}:8080'
-    depends_on:
-      - generate-keys
+      - '${KRAKEND_PORT:-8080}:8080'
+    environment:
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=12201
     networks:
       - shortener-network
+    restart: unless-stopped
 
   # JWT Key Generator - Generates keys for JWT authentication
   generate-keys:
-    image: node:18-alpine
+    image: node:${NODE_VERSION:-18-alpine}
     volumes:
       - .:/app
     working_dir: /app
     command: >
       sh -c "npm install && npm run generate-jwks"
     environment:
-      - NODE_ENV=${NODE_ENV}
+      - NODE_ENV=${NODE_ENV:-development}
     networks:
       - shortener-network
+
+  # IAM Service - Handles user authentication and authorization
+  iam:
+    build:
+      context: .
+      dockerfile: apps/iam/Dockerfile
+    ports:
+      - '${IAM_SERVICE_PORT:-3001}:3001'
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL_IAM=${DATABASE_URL_IAM}
+      - IAM_SERVICE_URL=${IAM_SERVICE_URL}
+      - LOGSTASH_HOST=${LOGSTASH_HOST}
+      - LOGSTASH_PORT=${LOGSTASH_PORT}
+      - LOGSTASH_TLS=${LOGSTASH_TLS}
+      - JAEGER_OTLP_ENDPOINT=${JAEGER_OTLP_ENDPOINT}
+    depends_on:
+      iam-db:
+        condition: service_healthy
+      iam-migrate:
+        condition: service_completed_successfully
+    networks:
+      - shortener-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3001/api/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # URL Shortener Service - Handles URL shortening and redirection
+  url-shortener:
+    build:
+      context: .
+      dockerfile: apps/url-shortener/Dockerfile
+    ports:
+      - '${URL_SERVICE_PORT:-3002}:3002'
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DATABASE_URL_URL=${DATABASE_URL_URL}
+      - URL_SERVICE_URL=${URL_SERVICE_URL}
+      - LOGSTASH_HOST=${LOGSTASH_HOST}
+      - LOGSTASH_PORT=${LOGSTASH_PORT}
+      - LOGSTASH_TLS=${LOGSTASH_TLS}
+      - JAEGER_OTLP_ENDPOINT=${JAEGER_OTLP_ENDPOINT}
+    depends_on:
+      url-db:
+        condition: service_healthy
+      url-migrate:
+        condition: service_completed_successfully
+    networks:
+      - shortener-network
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -f http://localhost:3002/api/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # IAM Database - PostgreSQL database for IAM service
   iam-db:
@@ -75,9 +137,43 @@ services:
       retries: 5
       start_period: 10s
 
+  # IAM Migration service
+  iam-migrate:
+    image: node:${NODE_VERSION:-18-alpine}
+    command: >
+      sh -c "npx prisma migrate deploy --schema=./libs/prisma-iam/src/prisma/schema.prisma"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - DATABASE_URL_IAM=${DATABASE_URL_IAM}
+      - NODE_ENV=development
+    depends_on:
+      iam-db:
+        condition: service_healthy
+    networks:
+      - shortener-network
+
+  # URL Migration service
+  url-migrate:
+    image: node:${NODE_VERSION:-18-alpine}
+    command: >
+      sh -c "npm install && npx prisma migrate deploy --schema=./libs/prisma-url/src/prisma/schema.prisma"
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - DATABASE_URL_URL=${DATABASE_URL_URL}
+    depends_on:
+      url-db:
+        condition: service_healthy
+    networks:
+      - shortener-network
+
 volumes:
   iam-db-data:
   url-db-data:
+
 networks:
   shortener-network:
     driver: bridge
