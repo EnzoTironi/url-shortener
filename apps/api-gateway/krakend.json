@@ -1,0 +1,59 @@
+{
+  "$schema": "https://www.krakend.io/schema/v2.7/krakend.json",
+  "version": 3,
+  "name": "URL Shortener Gateway",
+  "port": 8080,
+  "endpoints": [
+    {
+      "@comment": "IAM - Auth Module",
+      "endpoint": "/auth/token",
+      "method": "POST",
+      "backend": [
+        {
+          "url_pattern": "api/auth/login",
+          "host": [
+            "http://iam:3001"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "iam_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "validation/json-schema": {
+          "type": "object",
+          "required": [
+            "email",
+            "password",
+            "tenantId"
+          ],
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "password": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tenantId": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "auth/signer": {
+          "alg": "RS256",
+          "kid": "kid1",
+          "keys_to_sign": [
+            "access_token"
+          ],
+          "jwk_local_path": "./certs/private.json",
+          "disable_jwk_security": true
+        }
+      }
+    }
+  ]
+}

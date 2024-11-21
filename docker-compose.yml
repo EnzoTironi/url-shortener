@@ -1,0 +1,26 @@
+services:
+  # API Gateway - Handles API requests and routes them to the appropriate service
+  krakend:
+    image: devopsfaith/krakend:latest
+    volumes:
+      - ./apps/api-gateway/krakend.json:/etc/krakend/krakend.json
+      - ./certs:/etc/krakend/certs
+    ports:
+      - '${KRAKEND_PORT}:8080'
+    depends_on:
+      - generate-keys
+    networks:
+      - shortener-network
+
+  # JWT Key Generator - Generates keys for JWT authentication
+  generate-keys:
+    image: node:18-alpine
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: >
+      sh -c "npm install && npm run generate-jwks"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    networks:
+      - shortener-network
