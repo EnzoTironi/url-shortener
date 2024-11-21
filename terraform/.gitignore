@@ -1,0 +1,6 @@
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log 
+url-shortener-cluster-config
