@@ -690,6 +690,51 @@
       }
     },
     {
+      "endpoint": "/url/info/{shortCode}",
+      "method": "GET",
+      "input_headers": [
+        "Authorization",
+        "Content-Type",
+        "X-User-Id",
+        "X-User-Roles",
+        "X-Tenant-Id"
+      ],
+      "backend": [
+        {
+          "url_pattern": "api/url/info/{shortCode}",
+          "host": [
+            "http://url-shortener:3002"
+          ],
+          "extra_config": {
+            "backend/http": {
+              "return_error_details": "url_shortener_service"
+            }
+          }
+        }
+      ],
+      "extra_config": {
+        "auth/validator": {
+          "alg": "RS256",
+          "jwk_local_path": "./certs/jwks.json",
+          "disable_jwk_security": true,
+          "propagate_claims": [
+            [
+              "sub",
+              "X-User-Id"
+            ],
+            [
+              "role",
+              "X-User-Roles"
+            ],
+            [
+              "tenantId",
+              "X-Tenant-Id"
+            ]
+          ]
+        }
+      }
+    },
+    {
       "endpoint": "/url/{shortCode}",
       "method": "GET",
       "backend": [

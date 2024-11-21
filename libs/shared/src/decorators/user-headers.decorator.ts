@@ -1,5 +1,5 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { UserJWT } from '../dtos';
+import { UserJWT } from '../dtos/user-jwt.dto';
 
 export const UserHeaders = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): UserJWT => {
