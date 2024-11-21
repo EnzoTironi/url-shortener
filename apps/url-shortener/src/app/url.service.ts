@@ -4,16 +4,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUrlDto, UpdateUrlDto } from './dtos';
-import { IUrlService } from './interfaces/url.interface';
 import { LoggerService } from '@url-shortener/logger';
 import { ShortCodeService } from './utils/short-code.service';
 import { UrlRepository } from './url.repository';
 import { UserJWT } from '@url-shortener/shared';
 import { url } from '@database/url';
 import {
+  IUrlService,
+  OriginalUrlResponse,
   UrlCreationResponse,
   UrlResponse,
-  OriginalUrlResponse,
   UserIdResponse,
 } from './interfaces/url.interface';
 
@@ -97,7 +97,6 @@ export class UrlService implements IUrlService {
       `Incremented click count for URL with short code: ${shortCode}`,
       'UrlService'
     );
-    return;
   }
 
   async countAccess(shortCode: string): Promise<void> {

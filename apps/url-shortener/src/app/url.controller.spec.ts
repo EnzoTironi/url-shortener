@@ -44,7 +44,7 @@ describe('UrlController', () => {
     getUserUrls: jest.fn(),
     updateUrl: jest.fn(),
     softDelete: jest.fn(),
-    countAccess: jest.fn(),
+    incrementClickCount: jest.fn(),
     getUrlInfo: jest.fn(),
   };
 
@@ -166,11 +166,11 @@ describe('UrlController', () => {
     });
   });
 
-  describe('countAccess', () => {
+  describe('incrementClickCount', () => {
     it('should increment access count', async () => {
-      await controller.countAccess('abc123');
+      await controller.incrementClickCount('abc123');
 
-      expect(service.countAccess).toHaveBeenCalledWith('abc123');
+      expect(service.incrementClickCount).toHaveBeenCalledWith('abc123');
     });
   });
 });

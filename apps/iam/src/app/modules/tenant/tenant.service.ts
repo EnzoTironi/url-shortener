@@ -8,7 +8,7 @@ import { ITenantService } from './interfaces/tenant-service.interface';
 import { LoggerService } from '@url-shortener/logger';
 import { RoleType, Tenant } from '@database/iam';
 import { TenantRepository } from './tenant.repository';
-import { UserJWT } from '@url-shortener/shared';
+import { Actions, UserJWT } from '@url-shortener/shared';
 
 @Injectable()
 export class TenantService implements ITenantService {
@@ -18,7 +18,7 @@ export class TenantService implements ITenantService {
   ) {}
 
   async create(createTenantDto: CreateTenantDto, userInfo: UserJWT) {
-    this.verifyAdminRole(userInfo);
+    this.verifyAccess(null, userInfo, Actions.CREATE);
     const tenant = await this.tenantRepository.create(createTenantDto);
 
     this.logger.log(`Tenant created with ID: ${tenant.id}`, 'TenantService');
@@ -31,7 +31,7 @@ export class TenantService implements ITenantService {
     userInfo: UserJWT
   ) {
     const tenant = await this.findTenant(id);
-    this.verifyTenantAccess(tenant, userInfo);
+    this.verifyAccess(tenant, userInfo, Actions.UPDATE);
     const updatedTenant = await this.tenantRepository.update(
       id,
       updateTenantDto
@@ -43,7 +43,7 @@ export class TenantService implements ITenantService {
 
   async softDelete(id: string, userInfo: UserJWT) {
     const tenant = await this.findTenant(id);
-    this.verifyTenantAccess(tenant, userInfo);
+    this.verifyAccess(tenant, userInfo, Actions.DELETE);
 
     const deletedTenant = await this.tenantRepository.softDelete(id);
 
@@ -63,32 +63,34 @@ export class TenantService implements ITenantService {
 
   private async findTenant(id: string) {
     const tenant = await this.tenantRepository.findById(id);
+    const isNotDeleted = tenant?.deletedAt === null;
 
-    if (!tenant || tenant?.deletedAt !== null) {
-      this.logger.warn(`Tenant not found: ${id}`, 'TenantService');
-      throw new NotFoundException('Tenant not found');
-    }
+    if (tenant && isNotDeleted) return tenant;
 
-    return tenant;
+    this.logger.warn(`Tenant not found: ${id}`, 'TenantService');
+    throw new NotFoundException('Tenant not found');
   }
 
-  private verifyAdminRole(userInfo: UserJWT) {
-    if (userInfo.userRoles !== RoleType.ADMIN) {
-      this.logger.warn(
-        `Non-admin user ${userInfo.userId} attempted to create tenant`,
-        'TenantService'
-      );
-      throw new ForbiddenException('Only admins can create tenants');
-    }
-  }
+  private verifyAccess(
+    tenant: Tenant | null,
+    userInfo: UserJWT,
+    action: Actions
+  ) {
+    const isAdmin = userInfo.userRoles === RoleType.ADMIN;
+    const isSameTenantAdmin =
+      userInfo.userRoles === RoleType.TENANT_ADMIN &&
+      tenant?.id === userInfo.tenantId;
+    const isNotCreateAction = action !== Actions.CREATE;
 
-  private verifyTenantAccess(tenant: any, userInfo: UserJWT) {
-    if (tenant?.id !== userInfo.tenantId) {
-      this.logger.warn(
-        `Unauthorized tenant access attempt: User ${userInfo.userId}`,
-        'TenantService'
-      );
-      throw new ForbiddenException('You are not allowed to access this tenant');
-    }
+    if (isAdmin) return;
+    if (isSameTenantAdmin && isNotCreateAction) return;
+
+    this.logger.warn(
+      `Unauthorized tenant access attempt: User ${userInfo.userId}`,
+      'TenantService'
+    );
+    throw new ForbiddenException(
+      `You are not allowed to perform this action: ${action}`
+    );
   }
 }

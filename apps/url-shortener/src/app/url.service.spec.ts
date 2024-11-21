@@ -34,9 +34,10 @@ describe('UrlService', () => {
 
   const mockUrlRepository = {
     create: jest.fn(),
-    findByShortCode: jest.fn(),
+    findByShortCodeOrThrow: jest.fn(),
     findById: jest.fn(),
     findByUserId: jest.fn(),
+    findByShortCode: jest.fn(),
     update: jest.fn(),
     updateByShortCode: jest.fn(),
     softDelete: jest.fn(),
@@ -117,12 +118,12 @@ describe('UrlService', () => {
 
   describe('getOriginalUrl', () => {
     it('should return original URL', async () => {
-      mockUrlRepository.findByShortCode.mockResolvedValue(mockUrl);
+      mockUrlRepository.findByShortCodeOrThrow.mockResolvedValue(mockUrl);
 
       const result = await service.getOriginalUrl('abc123');
 
       expect(result).toEqual({ originalUrl: mockUrl.originalUrl });
-      expect(repository.findByShortCode).toHaveBeenCalledWith('abc123');
+      expect(repository.findByShortCodeOrThrow).toHaveBeenCalledWith('abc123');
     });
   });
 
@@ -156,6 +157,7 @@ describe('UrlService', () => {
           id: mockUrl.id,
           shortCode: mockUrl.shortCode,
           originalUrl: mockUrl.originalUrl,
+          clickCount: mockUrl.clickCount,
         },
       ]);
       expect(repository.findByUserId).toHaveBeenCalledWith(mockUserJWT.userId);
@@ -181,6 +183,7 @@ describe('UrlService', () => {
         id: updatedUrl.id,
         shortCode: updatedUrl.shortCode,
         originalUrl: updatedUrl.originalUrl,
+        clickCount: updatedUrl.clickCount,
       });
       expect(loggerService.log).toHaveBeenCalledWith(
         `Updated URL with ID: test-id`,
@@ -255,17 +258,19 @@ describe('UrlService', () => {
 
   describe('getUrlInfo', () => {
     it('should return URL info for URL owner', async () => {
-      mockUrlRepository.findByShortCode.mockResolvedValue(mockUrl);
+      mockUrlRepository.findByShortCodeOrThrow.mockResolvedValue(mockUrl);
 
       const result = await service.getUrlInfo('abc123', mockUserJWT);
 
       expect(result).toEqual(mockUrl);
-      expect(repository.findByShortCode).toHaveBeenCalledWith('abc123');
+      expect(repository.findByShortCodeOrThrow).toHaveBeenCalledWith('abc123');
     });
 
     it('should throw ForbiddenException for unauthorized access', async () => {
       const unauthorizedUrl = { ...mockUrl, userId: 'different-user' };
-      mockUrlRepository.findByShortCode.mockResolvedValue(unauthorizedUrl);
+      mockUrlRepository.findByShortCodeOrThrow.mockResolvedValue(
+        unauthorizedUrl
+      );
 
       await expect(service.getUrlInfo('abc123', mockUserJWT)).rejects.toThrow(
         ForbiddenException

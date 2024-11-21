@@ -7,9 +7,7 @@ import { CreateUserDto, UpdateUserDto, UpdateRoleDto } from './dtos';
 import { UserJWT } from '@url-shortener/shared';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { User, RoleType } from '@database/iam';
-import {
-  createMockLoggerService,
-} from '../../../../jest.setup';
+import { createMockLoggerService } from '../../../../jest.setup';
 
 describe('UserService', () => {
   let service: UserService;
@@ -76,40 +74,43 @@ describe('UserService', () => {
       tenantId: 'test-tenant-id',
     };
 
-    beforeEach(() => {
-      mockPasswordService.hashPassword.mockResolvedValue('hashed_password');
+    describe('when successful', () => {
+      beforeEach(() => {
+        mockPasswordService.hashPassword.mockResolvedValue('hashed_password');
+        mockUserRepository.create.mockResolvedValue(mockUser);
+      });
+
+      it('should create a user with hashed password', async () => {
+        const result = await service.create(createUserDto);
+
+        expect(result).toEqual({
+          id: mockUser.id,
+          email: mockUser.email,
+          role: mockUser.role,
+          tenantId: mockUser.tenantId,
+        });
+        expect(passwordService.hashPassword).toHaveBeenCalledWith(
+          createUserDto.password
+        );
+        expect(repository.create).toHaveBeenCalledWith({
+          ...createUserDto,
+          password: 'hashed_password',
+        });
+        expect(logger.log).toHaveBeenCalledWith(
+          `User created with ID: ${mockUser.id}`,
+          'UserService'
+        );
+      });
     });
 
-    it('should create a user with hashed password', async () => {
-      mockUserRepository.create.mockResolvedValue(mockUser);
+    describe('when password hashing fails', () => {
+      it('should pass through any errors from password hashing', async () => {
+        const error = new Error('Hashing failed');
+        mockPasswordService.hashPassword.mockRejectedValue(error);
 
-      const result = await service.create(createUserDto);
-
-      expect(result).toEqual({
-        id: mockUser.id,
-        email: mockUser.email,
-        role: mockUser.role,
-        tenantId: mockUser.tenantId,
+        await expect(service.create(createUserDto)).rejects.toThrow(error);
+        expect(repository.create).not.toHaveBeenCalled();
       });
-      expect(passwordService.hashPassword).toHaveBeenCalledWith(
-        createUserDto.password
-      );
-      expect(repository.create).toHaveBeenCalledWith({
-        ...createUserDto,
-        password: 'hashed_password',
-      });
-      expect(logger.log).toHaveBeenCalledWith(
-        `User created with ID: ${mockUser.id}`,
-        'UserService'
-      );
-    });
-
-    it('should pass through any errors from password hashing', async () => {
-      const error = new Error('Hashing failed');
-      mockPasswordService.hashPassword.mockRejectedValue(error);
-
-      await expect(service.create(createUserDto)).rejects.toThrow(error);
-      expect(repository.create).not.toHaveBeenCalled();
     });
   });
 
@@ -123,43 +124,101 @@ describe('UserService', () => {
       mockUserRepository.findById.mockResolvedValue(mockUser);
     });
 
-    it('should update a user when authorized', async () => {
-      const updatedUser = { ...mockUser, email: updateUserDto.email };
-      mockUserRepository.update.mockResolvedValue(updatedUser);
+    describe('when user is admin', () => {
+      it('should update any user', async () => {
+        const updatedUser = { ...mockUser, email: updateUserDto.email };
+        mockUserRepository.update.mockResolvedValue(updatedUser);
 
-      const result = await service.update(userId, updateUserDto, mockUserInfo);
+        const result = await service.update(userId, updateUserDto, mockUserInfo);
 
-      expect(result).toEqual({
-        id: updatedUser.id,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        tenantId: updatedUser.tenantId,
+        expect(result).toEqual({
+          id: updatedUser.id,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          tenantId: updatedUser.tenantId,
+        });
+        expect(repository.update).toHaveBeenCalledWith(userId, updateUserDto);
+        expect(logger.log).toHaveBeenCalledWith(
+          `User ${userId} updated successfully`,
+          'UserService'
+        );
       });
-      expect(repository.update).toHaveBeenCalledWith(userId, updateUserDto);
-      expect(logger.log).toHaveBeenCalledWith(
-        `User ${userId} updated successfully`,
-        'UserService'
-      );
     });
 
-    it('should throw NotFoundException when user does not exist', async () => {
-      mockUserRepository.findById.mockResolvedValue(null);
+    describe('when user is tenant admin', () => {
+      const tenantAdminUser = {
+        ...mockUserInfo,
+        userId: 'tenant-admin-id',
+        userRoles: RoleType.TENANT_ADMIN,
+        tenantId: mockUser.tenantId,
+      };
 
-      await expect(
-        service.update(userId, updateUserDto, mockUserInfo)
-      ).rejects.toThrow(NotFoundException);
-      expect(repository.update).not.toHaveBeenCalled();
-      expect(logger.warn).toHaveBeenCalled();
+      it('should update users in their tenant', async () => {
+        const updatedUser = { ...mockUser, email: updateUserDto.email };
+        mockUserRepository.update.mockResolvedValue(updatedUser);
+
+        const result = await service.update(
+          userId,
+          updateUserDto,
+          tenantAdminUser
+        );
+
+        expect(result).toEqual({
+          id: updatedUser.id,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          tenantId: updatedUser.tenantId,
+        });
+        expect(repository.update).toHaveBeenCalledWith(userId, updateUserDto);
+      });
+
+      it('should not update users from different tenant', async () => {
+        const userFromDifferentTenant = {
+          ...mockUser,
+          id: 'different-user-id',
+          tenantId: 'another-tenant-id',
+        };
+        mockUserRepository.findById.mockResolvedValue(userFromDifferentTenant);
+
+        await expect(
+          service.update(userId, updateUserDto, tenantAdminUser)
+        ).rejects.toThrow(ForbiddenException);
+        expect(repository.update).not.toHaveBeenCalled();
+      });
     });
 
-    it('should throw ForbiddenException when user does not have access', async () => {
-      const differentUser = { ...mockUserInfo, userId: 'different-user-id' };
+    describe('when user is regular user', () => {
+      const regularUser = {
+        ...mockUserInfo,
+        userId: 'regular-user-id',
+        userRoles: RoleType.USER,
+      };
 
-      await expect(
-        service.update(userId, updateUserDto, differentUser)
-      ).rejects.toThrow(ForbiddenException);
-      expect(repository.update).not.toHaveBeenCalled();
-      expect(logger.warn).toHaveBeenCalled();
+      it('should not update other users', async () => {
+        const otherUser = {
+          ...mockUser,
+          id: 'other-user-id',
+        };
+        mockUserRepository.findById.mockResolvedValue(otherUser);
+
+        await expect(
+          service.update(userId, updateUserDto, regularUser)
+        ).rejects.toThrow(ForbiddenException);
+        expect(repository.update).not.toHaveBeenCalled();
+        expect(logger.warn).toHaveBeenCalled();
+      });
+    });
+
+    describe('error cases', () => {
+      it('should throw NotFoundException when user does not exist', async () => {
+        mockUserRepository.findById.mockResolvedValue(null);
+
+        await expect(
+          service.update(userId, updateUserDto, mockUserInfo)
+        ).rejects.toThrow(NotFoundException);
+        expect(repository.update).not.toHaveBeenCalled();
+        expect(logger.warn).toHaveBeenCalled();
+      });
     });
   });
 
@@ -172,36 +231,68 @@ describe('UserService', () => {
       mockUserRepository.findById.mockResolvedValue(mockUser);
     });
 
-    it('should update role when user is admin', async () => {
-      const updatedUser = { ...mockUser, role: updateRoleDto.role };
-      mockUserRepository.updateRole.mockResolvedValue(updatedUser);
+    describe('when user is admin', () => {
+      it('should update roles', async () => {
+        const updatedUser = { ...mockUser, role: updateRoleDto.role };
+        mockUserRepository.updateRole.mockResolvedValue(updatedUser);
 
-      const result = await service.updateRole(updateRoleDto, mockUserInfo);
+        const result = await service.updateRole(updateRoleDto, mockUserInfo);
 
-      expect(result).toEqual({
-        id: updatedUser.id,
-        email: updatedUser.email,
-        role: updatedUser.role,
-        tenantId: updatedUser.tenantId,
+        expect(result).toEqual({
+          id: updatedUser.id,
+          email: updatedUser.email,
+          role: updatedUser.role,
+          tenantId: updatedUser.tenantId,
+        });
+        expect(repository.updateRole).toHaveBeenCalledWith(
+          mockUserInfo.userId,
+          updateRoleDto.role
+        );
+        expect(logger.log).toHaveBeenCalledWith(
+          `Role updated for user ${mockUserInfo.userId}`,
+          'UserService'
+        );
       });
-      expect(repository.updateRole).toHaveBeenCalledWith(
-        mockUserInfo.userId,
-        updateRoleDto.role
-      );
-      expect(logger.log).toHaveBeenCalledWith(
-        `Role updated for user ${mockUserInfo.userId}`,
-        'UserService'
-      );
     });
 
-    it('should throw ForbiddenException when user is not admin', async () => {
-      const nonAdminUser = { ...mockUserInfo, userRoles: RoleType.USER };
+    describe('when user is not admin', () => {
+      it('should not allow tenant admin to update roles', async () => {
+        const tenantAdminUser = {
+          ...mockUserInfo,
+          userRoles: RoleType.TENANT_ADMIN,
+        };
 
-      await expect(
-        service.updateRole(updateRoleDto, nonAdminUser)
-      ).rejects.toThrow(ForbiddenException);
-      expect(repository.updateRole).not.toHaveBeenCalled();
-      expect(logger.warn).toHaveBeenCalled();
+        await expect(
+          service.updateRole(updateRoleDto, tenantAdminUser)
+        ).rejects.toThrow(ForbiddenException);
+        expect(repository.updateRole).not.toHaveBeenCalled();
+      });
+
+      it('should not allow regular user to update roles', async () => {
+        const nonAdminUser = {
+          ...mockUserInfo,
+          userRoles: RoleType.USER,
+        };
+
+        await expect(
+          service.updateRole(updateRoleDto, nonAdminUser)
+        ).rejects.toThrow(ForbiddenException);
+        expect(repository.updateRole).not.toHaveBeenCalled();
+        expect(logger.warn).toHaveBeenCalled();
+      });
+
+      it('should not allow self role updates', async () => {
+        const selfUser = {
+          ...mockUserInfo,
+          userRoles: RoleType.USER,
+          userId: mockUser.id,
+        };
+
+        await expect(service.updateRole(updateRoleDto, selfUser)).rejects.toThrow(
+          ForbiddenException
+        );
+        expect(repository.updateRole).not.toHaveBeenCalled();
+      });
     });
   });
 
@@ -212,43 +303,80 @@ describe('UserService', () => {
       mockUserRepository.findById.mockResolvedValue(mockUser);
     });
 
-    it('should soft delete when user is admin', async () => {
-      const deletedUser = { ...mockUser, deletedAt: new Date() };
-      mockUserRepository.softDelete.mockResolvedValue(deletedUser);
+    describe('when user is admin', () => {
+      it('should delete any user', async () => {
+        const deletedUser = { ...mockUser, deletedAt: new Date() };
+        mockUserRepository.softDelete.mockResolvedValue(deletedUser);
 
-      const result = await service.softDelete(userId, mockUserInfo);
+        const result = await service.softDelete(userId, mockUserInfo);
 
-      expect(result).toEqual(deletedUser);
-      expect(repository.softDelete).toHaveBeenCalledWith(userId);
-      expect(logger.log).toHaveBeenCalledWith(
-        `User ${userId} soft deleted successfully`,
-        'UserService'
-      );
+        expect(result).toEqual(deletedUser);
+        expect(repository.softDelete).toHaveBeenCalledWith(userId);
+        expect(logger.log).toHaveBeenCalledWith(
+          `User ${userId} soft deleted successfully`,
+          'UserService'
+        );
+      });
     });
 
-    it('should allow self-deletion', async () => {
-      const regularUser = { ...mockUserInfo, userRoles: RoleType.USER };
-      const deletedUser = { ...mockUser, deletedAt: new Date() };
-      mockUserRepository.softDelete.mockResolvedValue(deletedUser);
-
-      const result = await service.softDelete(userId, regularUser);
-
-      expect(result).toEqual(deletedUser);
-      expect(repository.softDelete).toHaveBeenCalledWith(userId);
-    });
-
-    it('should throw ForbiddenException when non-admin tries to delete another user', async () => {
-      const regularUser = {
+    describe('when user is tenant admin', () => {
+      const tenantAdminUser = {
         ...mockUserInfo,
-        userId: 'different-user-id',
-        userRoles: RoleType.USER,
+        userId: 'tenant-admin-id',
+        userRoles: RoleType.TENANT_ADMIN,
+        tenantId: mockUser.tenantId,
       };
 
-      await expect(service.softDelete(userId, regularUser)).rejects.toThrow(
-        ForbiddenException
-      );
-      expect(repository.softDelete).not.toHaveBeenCalled();
-      expect(logger.warn).toHaveBeenCalled();
+      it('should delete users in their tenant', async () => {
+        const deletedUser = { ...mockUser, deletedAt: new Date() };
+        mockUserRepository.softDelete.mockResolvedValue(deletedUser);
+
+        const result = await service.softDelete(userId, tenantAdminUser);
+
+        expect(result).toEqual(deletedUser);
+        expect(repository.softDelete).toHaveBeenCalledWith(userId);
+      });
+
+      it('should not delete users from different tenant', async () => {
+        const userFromDifferentTenant = {
+          ...mockUser,
+          id: 'different-user-id',
+          tenantId: 'another-tenant-id',
+        };
+        mockUserRepository.findById.mockResolvedValue(userFromDifferentTenant);
+
+        await expect(
+          service.softDelete(userId, tenantAdminUser)
+        ).rejects.toThrow(ForbiddenException);
+        expect(repository.softDelete).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when user is regular user', () => {
+      it('should allow self-deletion', async () => {
+        const regularUser = { ...mockUserInfo, userRoles: RoleType.USER };
+        const deletedUser = { ...mockUser, deletedAt: new Date() };
+        mockUserRepository.softDelete.mockResolvedValue(deletedUser);
+
+        const result = await service.softDelete(userId, regularUser);
+
+        expect(result).toEqual(deletedUser);
+        expect(repository.softDelete).toHaveBeenCalledWith(userId);
+      });
+
+      it('should not delete other users', async () => {
+        const regularUser = {
+          ...mockUserInfo,
+          userId: 'different-user-id',
+          userRoles: RoleType.USER,
+        };
+
+        await expect(service.softDelete(userId, regularUser)).rejects.toThrow(
+          ForbiddenException
+        );
+        expect(repository.softDelete).not.toHaveBeenCalled();
+        expect(logger.warn).toHaveBeenCalled();
+      });
     });
   });
 });
