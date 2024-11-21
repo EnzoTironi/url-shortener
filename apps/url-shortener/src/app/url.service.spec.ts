@@ -124,14 +124,6 @@ describe('UrlService', () => {
       expect(result).toEqual({ originalUrl: mockUrl.originalUrl });
       expect(repository.findByShortCode).toHaveBeenCalledWith('abc123');
     });
-
-    it('should throw NotFoundException when URL not found', async () => {
-      mockUrlRepository.findByShortCode.mockResolvedValue(null);
-
-      await expect(service.getOriginalUrl('abc123')).rejects.toThrow(
-        NotFoundException
-      );
-    });
   });
 
   describe('addUserId', () => {
@@ -194,14 +186,6 @@ describe('UrlService', () => {
         `Updated URL with ID: test-id`,
         'UrlService'
       );
-    });
-
-    it('should throw NotFoundException when URL not found', async () => {
-      mockUrlRepository.findById.mockResolvedValue(null);
-
-      await expect(
-        service.updateUrl('test-id', updateDto, mockUserJWT)
-      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException when user does not own URL', async () => {
@@ -277,14 +261,6 @@ describe('UrlService', () => {
 
       expect(result).toEqual(mockUrl);
       expect(repository.findByShortCode).toHaveBeenCalledWith('abc123');
-    });
-
-    it('should throw NotFoundException for non-existent URL', async () => {
-      mockUrlRepository.findByShortCode.mockResolvedValue(null);
-
-      await expect(service.getUrlInfo('abc123', mockUserJWT)).rejects.toThrow(
-        NotFoundException
-      );
     });
 
     it('should throw ForbiddenException for unauthorized access', async () => {

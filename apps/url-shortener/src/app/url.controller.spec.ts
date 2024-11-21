@@ -5,6 +5,15 @@ import { CreateUrlDto, UpdateUrlDto } from './dtos';
 import { UserJWT } from '@url-shortener/shared';
 import { url } from '@database/url';
 
+// Mock the UserHeaders decorator
+jest.mock('@url-shortener/shared', () => ({
+  ...jest.requireActual('@url-shortener/shared'),
+  UserHeaders:
+    () => (target: any, key: string, descriptor: PropertyDescriptor) => {
+      return descriptor;
+    },
+}));
+
 describe('UrlController', () => {
   let controller: UrlController;
   let service: UrlService;
