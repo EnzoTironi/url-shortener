@@ -1,3 +1,3 @@
 export class UpdateUserDto {
-  email: string;
+  email!: string;
 }

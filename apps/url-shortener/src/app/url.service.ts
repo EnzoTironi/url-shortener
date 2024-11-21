@@ -35,16 +35,23 @@ export class UrlService implements IUrlService {
     });
 
     this.logger.log(`Created URL with ID: ${createdUrl.id}`, 'UrlService');
-    //KRAKEND COMMUNITY, does not support redirecting
     return {
       urlId: createdUrl.id,
-      shortUrl: `${userInfo.userHost}/url/${shortCode}`,
+      shortUrl: `${userInfo?.userHost}/url/${shortCode}`,
     };
   }
 
-  async getOriginalUrl(shortCode: string): Promise<OriginalUrlResponse> {
-    const url = await this.findUrlByShortCode(shortCode);
-    return { originalUrl: url.originalUrl };
+  async updateUrl(
+    urlId: string,
+    updateUrlDto: UpdateUrlDto,
+    userInfo: UserJWT
+  ): Promise<UrlResponse> {
+    await this.verifyOwnership(urlId, userInfo.userId!);
+    const result = await this.urlRepository.update(urlId, {
+      originalUrl: updateUrlDto.url,
+    });
+    this.logger.log(`Updated URL with ID: ${urlId}`, 'UrlService');
+    return this.formatUrlResponse(result);
   }
 
   async addUserId(urlId: string, userInfo: UserJWT): Promise<UserIdResponse> {
@@ -53,33 +60,34 @@ export class UrlService implements IUrlService {
     });
 
     this.logger.log(`Added user ID to URL with ID: ${urlId}`, 'UrlService');
-    return { userId: updatedUrl.userId };
-  }
-
-  async getUserUrls(userInfo: UserJWT): Promise<UrlResponse[]> {
-    const urls = await this.urlRepository.findByUserId(userInfo.userId);
-    this.ensureUrlsExist(urls, `No URLs found for user ${userInfo.userId}`);
-    return urls.filter((url) => !url.deletedAt).map(this.formatUrlResponse);
+    return { userId: updatedUrl.userId! };
   }
 
   async softDelete(urlId: string, userInfo: UserJWT): Promise<UrlResponse> {
-    await this.verifyOwnership(urlId, userInfo.userId);
+    await this.verifyOwnership(urlId, userInfo.userId!);
     const result = await this.urlRepository.softDelete(urlId);
     this.logger.log(`Soft deleted URL with ID: ${urlId}`, 'UrlService');
     return this.formatUrlResponse(result);
   }
 
-  async updateUrl(
-    urlId: string,
-    updateUrlDto: UpdateUrlDto,
-    userInfo: UserJWT
-  ): Promise<UrlResponse> {
-    await this.verifyOwnership(urlId, userInfo.userId);
-    const result = await this.urlRepository.update(urlId, {
-      originalUrl: updateUrlDto.url,
-    });
-    this.logger.log(`Updated URL with ID: ${urlId}`, 'UrlService');
-    return this.formatUrlResponse(result);
+  async getOriginalUrl(shortCode: string): Promise<OriginalUrlResponse> {
+    const url = await this.findUrlByShortCode(shortCode);
+    if (!url) {
+      throw new NotFoundException('URL not found');
+    }
+    return { originalUrl: url.originalUrl };
+  }
+
+  async getUserUrls(userInfo: UserJWT): Promise<UrlResponse[]> {
+    const urls = await this.urlRepository.findByUserId(userInfo.userId!);
+    this.ensureUrlsExist(urls, `No URLs found for user ${userInfo.userId}`);
+    return urls.filter((url) => !url.deletedAt).map(this.formatUrlResponse);
+  }
+
+  async getUrlInfo(shortCode: string, userInfo: UserJWT): Promise<url> {
+    const url = await this.findUrlByShortCode(shortCode);
+    this.ensureUserAuthorization(url, userInfo.userId!);
+    return url;
   }
 
   async countAccess(shortCode: string): Promise<void> {
@@ -90,12 +98,7 @@ export class UrlService implements IUrlService {
     );
   }
 
-  async getUrlInfo(shortCode: string, userInfo: UserJWT): Promise<url> {
-    const url = await this.findUrlByShortCode(shortCode);
-    this.ensureUserAuthorization(url, userInfo.userId);
-    return url;
-  }
-
+  // Helper Methods
   private formatUrlResponse(url: url): UrlResponse {
     return {
       id: url.id,
@@ -105,7 +108,7 @@ export class UrlService implements IUrlService {
   }
 
   private async findUrlByShortCode(shortCode: string): Promise<url> {
-    return await this.urlRepository.findByShortCode(shortCode);
+    return await this.urlRepository.findByShortCodeOrThrow(shortCode);
   }
 
   private async generateUniqueShortCode(): Promise<string> {
@@ -119,6 +122,7 @@ export class UrlService implements IUrlService {
     return shortCode;
   }
 
+  // Validation Methods
   private ensureUrlsExist(urls: url[], message: string): void {
     if (!urls || urls.length === 0) throw new NotFoundException(message);
   }

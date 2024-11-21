@@ -20,7 +20,7 @@ COPY . .
 
 RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma 
 RUN npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma 
-RUN npx nx build iam --verbose
+RUN npx nx build iam
 
 # Final stage
 FROM node:18-alpine

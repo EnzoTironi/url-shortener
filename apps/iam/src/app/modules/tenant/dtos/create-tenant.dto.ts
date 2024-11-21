@@ -1,4 +1,4 @@
 export class CreateTenantDto {
-  name: string;
-  subDomain: string;
+  name!: string;
+  subDomain!: string;
 }

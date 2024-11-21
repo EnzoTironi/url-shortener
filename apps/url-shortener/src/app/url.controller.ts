@@ -24,12 +24,21 @@ export class UrlController implements IUrlController {
     return await this.urlService.shortUrl(createUrlDto, userInfo);
   }
 
-  @Post('add-user-id/:urlId')
-  async addUserId(
+  @Put(':urlId')
+  async updateUrl(
+    @Param('urlId') urlId: string,
+    @Body() updateUrlDto: UpdateUrlDto,
+    @UserHeaders() userInfo: UserJWT
+  ) {
+    return await this.urlService.updateUrl(urlId, updateUrlDto, userInfo);
+  }
+
+  @Delete(':urlId')
+  async deleteUrl(
     @Param('urlId') urlId: string,
     @UserHeaders() userInfo: UserJWT
   ) {
-    return this.urlService.addUserId(urlId, userInfo);
+    return await this.urlService.softDelete(urlId, userInfo);
   }
 
   @Get(':shortCode')
@@ -45,26 +54,17 @@ export class UrlController implements IUrlController {
     return await this.urlService.getUrlInfo(shortCode, userInfo);
   }
 
-  @Put(':urlId')
-  async updateUrl(
-    @Param('urlId') urlId: string,
-    @Body() updateUrlDto: UpdateUrlDto,
-    @UserHeaders() userInfo: UserJWT
-  ) {
-    return await this.urlService.updateUrl(urlId, updateUrlDto, userInfo);
-  }
-
   @Get('user/all')
   async getUserUrls(@UserHeaders() userInfo: UserJWT) {
     return await this.urlService.getUserUrls(userInfo);
   }
 
-  @Delete(':urlId')
-  async deleteUrl(
+  @Post('add-user-id/:urlId')
+  async addUserId(
     @Param('urlId') urlId: string,
     @UserHeaders() userInfo: UserJWT
   ) {
-    return await this.urlService.softDelete(urlId, userInfo);
+    return this.urlService.addUserId(urlId, userInfo);
   }
 
   @Get('count-access/:shortCode')

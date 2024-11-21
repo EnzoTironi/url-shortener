@@ -51,6 +51,16 @@ export class TenantService implements ITenantService {
     return this.formatTenantResponse(deletedTenant);
   }
 
+  private formatTenantResponse(
+    tenant: Tenant
+  ): Pick<Tenant, 'id' | 'name' | 'subDomain'> {
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      subDomain: tenant.subDomain,
+    };
+  }
+
   private async findTenant(id: string) {
     const tenant = await this.tenantRepository.findById(id);
 
@@ -80,15 +90,5 @@ export class TenantService implements ITenantService {
       );
       throw new ForbiddenException('You are not allowed to access this tenant');
     }
-  }
-
-  private formatTenantResponse(
-    tenant: Tenant
-  ): Pick<Tenant, 'id' | 'name' | 'subDomain'> {
-    return {
-      id: tenant.id,
-      name: tenant.name,
-      subDomain: tenant.subDomain,
-    };
   }
 }

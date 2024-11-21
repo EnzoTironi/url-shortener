@@ -1,3 +1,3 @@
 export class UpdateUrlDto {
-  url: string;
+  url!: string;
 }

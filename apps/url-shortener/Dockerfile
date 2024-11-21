@@ -23,7 +23,7 @@ COPY . .
 
 RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma 
 RUN npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma 
-RUN npx nx build url-shortener --verbose
+RUN npx nx build url-shortener
 
 # Final stage
 FROM node:18-alpine

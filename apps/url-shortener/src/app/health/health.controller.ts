@@ -22,26 +22,33 @@ export class HealthController {
   @Get()
   @HealthCheck()
   async check(): Promise<HealthCheckResult> {
+    const elasticsearchUrl = process.env.ELASTICSEARCH_URL ?? '';
+    const jaegerUrl = process.env.JAEGER_URL ?? '';
+
     try {
       const result = await this.health.check([
         () =>
           this.prisma.pingCheck('database', this.prismaService, {
             timeout: 3000,
           }),
-        // () =>
-        //   this.http.pingCheck('elasticsearch', 'http://elasticsearch:9200', {
-        //     timeout: 3000,
-        //   }),
-        // () =>
-        //   this.http.pingCheck('jaeger', 'http://jaeger:16686', {
-        //     timeout: 3000,
-        //   }),
+        () =>
+          this.http.pingCheck('elasticsearch', elasticsearchUrl, {
+            timeout: 3000,
+          }),
+        () =>
+          this.http.pingCheck('jaeger', jaegerUrl, {
+            timeout: 3000,
+          }),
       ]);
 
       this.logger.log('Health check completed successfully', 'HealthCheck');
       return result;
-    } catch (error) {
-      this.logger.error('Health check failed', error.stack, 'HealthCheck');
+    } catch (error: unknown) {
+      this.logger.error(
+        'Health check failed',
+        (error as Error).stack,
+        'HealthCheck'
+      );
       throw error;
     }
   }

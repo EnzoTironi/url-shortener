@@ -51,11 +51,11 @@ export class UserService implements IUserService {
   }
 
   async updateRole(updateRoleDto: UpdateRoleDto, userInfo: UserJWT) {
-    const user = await this.findUser(userInfo.userId);
+    const user = await this.findUser(userInfo.userId!);
     await this.verifyRoleUpdateAccess(user, userInfo);
 
     const updatedUser = await this.userRepository.updateRole(
-      userInfo.userId,
+      userInfo.userId!,
       updateRoleDto.role
     );
 
@@ -97,7 +97,7 @@ export class UserService implements IUserService {
   }
 
   private async verifyDeleteAccess(user: any, userInfo: UserJWT) {
-    const isAdmin = userInfo.userRoles.includes(RoleType.ADMIN);
+    const isAdmin = userInfo?.userRoles?.includes(RoleType.ADMIN);
     const isSelfDelete = user?.id === userInfo.userId;
 
     if (!isAdmin && !isSelfDelete) {
@@ -110,8 +110,8 @@ export class UserService implements IUserService {
   }
 
   private async verifyRoleUpdateAccess(user: any, userInfo: UserJWT) {
-    const isAdmin = userInfo.userRoles.includes(RoleType.ADMIN);
-    const isTenantAdmin = userInfo.userRoles.includes(RoleType.TENANT_ADMIN);
+    const isAdmin = userInfo?.userRoles?.includes(RoleType.ADMIN);
+    const isTenantAdmin = userInfo?.userRoles?.includes(RoleType.TENANT_ADMIN);
 
     if (!isAdmin && !isTenantAdmin) {
       this.logger.warn(

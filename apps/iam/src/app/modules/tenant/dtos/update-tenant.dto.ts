@@ -1,3 +1,3 @@
 export class UpdateTenantDto {
-  name: string;
+  name!: string;
 }

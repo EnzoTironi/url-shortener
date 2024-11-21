@@ -1,3 +1,4 @@
+import { ApiGatewayModule } from '@url-shortener/api-gateway-middleware';
 import { ExceptionFilterModule } from '@url-shortener/filters';
 import { HealthModule } from './health/health.module';
 import { HttpModule } from '@nestjs/axios';
@@ -18,6 +19,7 @@ import { UrlService } from './url.service';
     HealthModule,
     TerminusModule,
     HttpModule,
+    ApiGatewayModule,
   ],
   controllers: [UrlController],
   providers: [UrlService, UrlRepository, ShortCodeService],
