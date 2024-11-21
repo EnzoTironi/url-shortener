@@ -1,82 +1,242 @@
-# UrlShortener
+# URL Shortener Service
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+[![CI](https://github.com/enzotironi/url-shortener/actions/workflows/ci.yml/badge.svg)](https://github.com/enzotironi/url-shortener/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+A scalable, multi-tenant URL shortening service built with NX, NestJS and deployed on Kubernetes. This service provides URL shortening capabilities with user management and authentication features.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## 📋 Table of Contents
 
-## Finish your CI setup
+- [✨ Features](#-features)
+- [🛠 Tech Stack](#-tech-stack)
+- [🏗 Architecture](#-architecture)
+- [📝 Prerequisites](#-prerequisites)
+- [🚀 Quick Start with Docker Compose](#-quick-start-with-docker-compose)
+- [🔧 Quick Start with Terraform](#-quick-start-with-terraform)
+- [🔄 Testing](#-testing)
+- [📄 API Documentation](#-api-documentation)
+- [📊 Monitoring](#-monitoring)
+- [🤝 Contributing](#-contributing)
+- [📜 License](#-license)
+- [💬 Support](#-support)
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/HrP5CRMca4)
+## ✨ Features
 
+- URL shortening with custom short codes
+- Multi-tenant support
+- User authentication and authorization
+- Kubernetes deployment ready
+- OpenTelemetry tracing integration
+- Swagger API documentation
+- Health monitoring endpoints
 
-## Run tasks
+## 🛠 Tech Stack
 
-To run the dev server for your app, use:
+- **Backend Framework**: NestJS
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT-based auth
+- **Container Runtime**: Docker
+- **Orchestration**: Kubernetes (via Kind)
+- **Infrastructure as Code**: Terraform
+- **API Documentation**: OpenAPI/Swagger
+- **Monitoring**: OpenTelemetry, Pino logging, Elasticsearch, Kibana
+- **Testing**: Jest
 
-```sh
-npx nx serve url-shortener
+## 🏗 Architecture
+
+### System Components
+
+- IAM Service: Handles authentication and user management
+- URL Service: Manages URL shortening and redirection
+- API Gateway: Routes and secures incoming requests
+- PostgreSQL: Stores user and URL data
+- Jaeger: Provides distributed tracing
+- Elasticsearch: Handles logging aggregation
+- Kibana: Provides centralized view of logs and traces
+
+### Data Flow
+
+1. Requests come through the API Gateway (KrakenD)
+2. Authentication is handled by the IAM service
+3. URL operations are processed by the URL service
+4. Data is persisted in PostgreSQL databases
+5. Traces are collected in Jaeger
+6. Logs and traces are aggregated in Elasticsearch
+
+## 📝 Prerequisites
+
+### Required Tools
+
+- Node.js (v20.11.0 recommended)
+- npm
+- Docker
+- Kind
+- Kubectl
+- Terraform
+
+## 🚀 Quick Start with Docker Compose
+
+Quick start with Docker Compose is recommended for development.
+
+### Steps
+
+1. Clone and enter the repository:
+
+```bash
+git clone https://github.com/enzotironi/url-shortener.git
+cd url-shortener
 ```
 
-To create a production bundle:
+2. Copy the `.env.example` file to `.env` and set the required variables.
 
-```sh
-npx nx build url-shortener
+```bash
+cp .env.example .env
 ```
 
-To see all available targets to run for a project, run:
+3. Generate JWT keys for authentication:
 
-```sh
-npx nx show project url-shortener
+```bash
+npm install
+npm run generate-jwks
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+4. Start all services with Docker Compose:
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/node:app demo
+```bash
+docker-compose up --build
 ```
 
-To generate a new library, use:
+5. The following services will be available:
 
-```sh
-npx nx g @nx/node:lib mylib
+- API Gateway: <http://localhost:8080>
+- IAM Service: <http://localhost:3001>
+- URL Shortener Service: <http://localhost:3002>
+- Kibana: <http://localhost:5601>
+- Jaeger UI: <http://localhost:16686>
+
+6. If in development, will seed an Admin, an Test Admin and a User, for testing purposes.
+
+7. Import the Postman collection:
+
+   - Open Postman
+   - Click "Import" button
+   - Select the `postman.json` file from the project root
+   - A new collection "URL Shortener API" will be added
+
+8. Run the requests in any order, a test-suite is also available for E2E tests, and functionalities demonstration
+
+Note: The collection is configured to automatically set the `testTenantId` and `jwtToken` variables after the respective requests.
+
+## 🔧 Quick Start with Terraform
+
+1. Start the development environment:
+
+```bash
+npm run k8s:deploy:all
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+2. The following services will be available:
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+- API Gateway: <http://localhost:8080>
+- IAM Service: <http://localhost:3001>
+- URL Shortener Service: <http://localhost:3002>
+- Kibana: <http://localhost:5601>
+- Jaeger UI: <http://localhost:16686>
 
+3. If you want to rebuild the environment:
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+npm run k8s:reset
+```
 
-## Install Nx Console
+## 🔄 Testing
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+### Unit Tests
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Run unit tests:
 
-## Useful links
+```bash
+npm run test
+```
 
-Learn more:
+### Integration Tests
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Run integration tests with Postman and Docker Compose
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Making Requests to the Cluster
+
+#### IAM Service
+
+The IAM service is accessible at:
+
+```bash
+curl http://localhost:3001/api/health  # Health check
+curl http://localhost:3001/api/auth/login -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "password", "tenantId": "tenant1"}'
+```
+
+#### URL Shortener Service
+
+The URL shortener service is accessible at:
+
+```bash
+curl http://localhost:3002/api/health  # Health check
+curl http://localhost:3002/api/url -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -d '{"originalUrl": "https://example.com"}'
+```
+
+#### KrakenD API Gateway
+
+If you deploy KrakenD, it will be accessible at:
+
+```bash
+curl http://localhost:8080/auth/token -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"email": "user@example.com", "password": "password", "tenantId": "tenant1"}'
+```
+
+Note: Replace `YOUR_JWT_TOKEN` with an actual JWT token obtained from the auth endpoint.
+
+## 📄 API Documentation
+
+Swagger API documentation is available at:
+
+Then visit: <http://localhost:3001/api/docs>
+
+## 📊 Monitoring
+
+### Health Monitoring
+
+Health monitoring endpoints are available at:
+
+- <http://localhost:3001/api/health>
+- <http://localhost:3002/api/health>
+
+### Distributed Tracing
+
+Distributed tracing is available through Jaeger at:
+
+- <http://localhost:16686>
+
+### Centralized Logging and Tracing
+
+Centralized logging and tracing is available through Elasticsearch and Kibana at:
+
+- <http://localhost:5601>
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+We use Conventional Commits for commit messages. Commit using Git Commit.
+
+## 📜 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 💬 Support
+
+If you need help, please open an issue or contact the maintainers.
