@@ -2,16 +2,27 @@ import * as swaggerJson from './app/docs/swagger.json';
 import swaggerUi from 'swagger-ui-express';
 import { NestFactory } from '@nestjs/core';
 import { UrlModule } from './app/url.module';
+import { initializeTracing } from '@url-shortener/tracing';
+import { LoggerService } from '@url-shortener/logger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(UrlModule);
+  const otelSDK = initializeTracing('url-shortener-service');
+  otelSDK.start();
+
+  const app = await NestFactory.create(UrlModule, {
+    bufferLogs: true,
+  });
+
+  const logger = app.get(LoggerService);
+
   const globalPrefix = 'api';
   app.setGlobalPrefix(globalPrefix);
-  const port = process.env.URL_SERVICE_PORT || 3002;
 
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerJson));
 
+  const port = process.env.URL_SERVICE_PORT || 3002;
   await app.listen(port);
+  logger.log(`URL service is running on port ${port}`);
 }
 
 bootstrap();

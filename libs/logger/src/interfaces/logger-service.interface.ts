@@ -7,3 +7,16 @@ export interface ILoggerService {
 }
 
 export type LogMessage = string | Record<string, unknown>;
+
+export interface LoggerConfig {
+  elasticUrl: string;
+  logLevel: string;
+  environment: string;
+  hostname: string;
+}
+
+export interface LoggerContext {
+  context?: string;
+  feature?: string;
+  root?: string;
+}

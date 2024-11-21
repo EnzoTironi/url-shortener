@@ -1,9 +1,10 @@
-//dummy imports
-import * as pinoPretty from 'pino-pretty';
-import pinoElastic from 'pino-elasticsearch';
-
 import pino, { Logger, LoggerOptions } from 'pino';
+import pinoElastic from 'pino-elasticsearch';
+import pretty from 'pino-pretty';
 import { Injectable, Inject, Optional } from '@nestjs/common';
+import { LoggerConfig } from './interfaces';
+import { ecsFormat } from '@elastic/ecs-pino-format';
+import { trace as Trace } from '@opentelemetry/api';
 import {
   LOGGER_ROOT_NAME,
   LOGGER_FEATURE_NAME,
@@ -14,6 +15,7 @@ type LogMessage = string | Record<string, unknown>;
 @Injectable()
 export class LoggerService {
   private readonly logger: Logger;
+  private readonly config: LoggerConfig;
 
   constructor(
     @Inject(LOGGER_ROOT_NAME) private readonly rootName: string,
@@ -21,7 +23,8 @@ export class LoggerService {
     @Inject(LOGGER_FEATURE_NAME)
     private readonly featureName?: string
   ) {
-    this.logger = pino(this.createLoggerOptions());
+    this.config = this.loadConfig();
+    this.logger = this.initializeLogger();
   }
 
   log(message: LogMessage, context?: string): void {
@@ -44,6 +47,91 @@ export class LoggerService {
     this.logMessage('trace', message, context);
   }
 
+  // Configuration Methods
+  private loadConfig() {
+    return {
+      elasticUrl:
+        process.env['ELASTICSEARCH_URL'] ?? 'http://elasticsearch:9200',
+      logLevel: process.env['LOG_LEVEL'] ?? 'info',
+      environment: process.env['NODE_ENV'] ?? 'development',
+      hostname: process.env['HOSTNAME'] ?? 'unknown',
+    };
+  }
+
+  private createLoggerOptions(): LoggerOptions {
+    const { logLevel, environment, hostname } = this.config;
+
+    return {
+      level: logLevel,
+      base: {
+        service: this.rootName,
+        feature: this.featureName,
+        environment,
+        hostname,
+        pid: process.pid,
+      },
+      timestamp: pino.stdTimeFunctions.isoTime,
+      ...ecsFormat(),
+    };
+  }
+
+  // Logger Initialization Methods
+  private initializeLogger(): Logger {
+    const streams = pino.multistream([
+      { stream: this.streamToConsole() },
+      { stream: this.streamToElastic() },
+    ]);
+
+    return pino(this.createLoggerOptions(), streams);
+  }
+
+  private streamToConsole() {
+    return pretty({
+      colorize: true,
+      levelFirst: true,
+      translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l o',
+      singleLine: true,
+    });
+  }
+
+  private streamToElastic() {
+    const { elasticUrl } = this.config;
+    const index = this.generateIndexName();
+
+    const streamToElastic = pinoElastic({
+      node: elasticUrl,
+      index,
+      flushBytes: 10,
+      esVersion: 8,
+      opType: 'create',
+    });
+
+    streamToElastic.on('error', (error) => {
+      console.error('Elasticsearch client error:', error);
+    });
+    streamToElastic.on('insertError', (error) => {
+      console.error('Elasticsearch server error:', error);
+    });
+    return streamToElastic;
+  }
+
+  // Utility Methods
+  private generateIndexName(): string {
+    const today = new Date().toLocaleDateString('en-CA').replace(/-/g, '.');
+    return `logs-${this.rootName.toLowerCase()}-${today}`;
+  }
+
+  private getContextandTrace() {
+    const activeSpan = Trace.getActiveSpan();
+    const spanContext = activeSpan?.spanContext();
+
+    const traceId = spanContext?.traceId;
+    const spanId = spanContext?.spanId;
+
+    return { traceId, spanId };
+  }
+
+  // Logging Helper Methods
   private logMessage(
     level: 'info' | 'error' | 'warn' | 'debug' | 'trace',
     message: LogMessage,
@@ -56,6 +144,8 @@ export class LoggerService {
       feature: this.featureName,
       root: this.rootName,
       error: trace ? this.formatError(trace) : undefined,
+      message: msg,
+      ...this.getContextandTrace(),
       ...meta,
     };
 
@@ -75,52 +165,5 @@ export class LoggerService {
 
   private formatError(error: string | Error): Error {
     return typeof error === 'string' ? new Error(error) : error;
-  }
-
-  private createLoggerOptions(): LoggerOptions {
-    const targets = [];
-
-    // Development transport - pretty print to console
-    if (process.env['NODE_ENV'] === 'development') {
-      targets.push({
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          levelFirst: true,
-          translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l o',
-          singleLine: true,
-        },
-      });
-    }
-
-    // Elasticsearch transport for all environments
-    targets.push({
-      target: 'pino-elasticsearch',
-      options: {
-        node: process.env['ELASTICSEARCH_URL'] ?? 'http://elasticsearch:9200',
-        index: `logs-${this.rootName}-%{DATE}`, // e.g., logs-iam-2024.03.18
-        flushBytes: 1000,
-        flushInterval: 1000,
-        bulkSize: 200,
-        ecs: true, // Enable Elastic Common Schema
-        timestampField: '@timestamp',
-        documentType: '_doc',
-      },
-    });
-
-    return {
-      level: process.env['LOG_LEVEL'] ?? 'info',
-      base: {
-        service: this.rootName,
-        feature: this.featureName,
-        environment: process.env['NODE_ENV'] ?? 'development',
-        hostname: process.env['HOSTNAME'] ?? 'unknown',
-        pid: process.pid,
-      },
-      timestamp: pino.stdTimeFunctions.isoTime,
-      transport: {
-        targets,
-      },
-    };
   }
 }
