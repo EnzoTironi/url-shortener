@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SeedService } from './seed.service';
-import { PasswordService } from '../utils/password.service';
 import { LoggerService } from '@url-shortener/logger';
-import { SeedRepository } from './seed.repository';
+import { PasswordService } from '../utils/password.service';
 import { RoleType } from '@url-shortener/prisma-client-iam';
+import { SeedRepository } from './seed.repository';
+import { SeedService } from './seed.service';
+import { Test, TestingModule } from '@nestjs/testing';
 
 // Mock the actual RoleType from prisma client
 jest.mock('@url-shortener/prisma-client-iam', () => ({

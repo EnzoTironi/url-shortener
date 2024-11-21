@@ -15,35 +15,28 @@ COPY tsconfig*.json ./
 
 COPY . .
 
-# Install dependencies
-RUN npm ci
-
-# Generate Prisma client
-RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma && \
-  npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma
-
-# Build the app with Nx
-RUN npx nx build iam --verbose
+# Install dependencies and generate Prisma client
+RUN npm ci && \
+  npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma && \
+  npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma && \
+  npx nx build iam --verbose
 
 # Final stage
 FROM node:18-alpine
 
 # Copy built app
 COPY --from=builder /app/dist/apps/iam .
-# Copy the Prisma client to the correct location relative to the app
-COPY --from=builder /app/node_modules/@prisma/client/ ./node_modules/@prisma/client/
-
 COPY --from=builder /app/dist/apps/iam/package*.json .
-# Copy the logger package to the correct location relative to the app
-COPY --from=builder /app/node_modules/pino-pretty/ ./node_modules/pino-pretty/
+
+# Copy prisma schema and client
+COPY --from=builder /app/node_modules/@prisma/client/ ./node_modules/@prisma/client/
+COPY --from=builder /app/libs/prisma-iam/src/prisma/ ./prisma/
+
 
 # Install production dependencies in the app directory
 RUN npm install --omit=dev
 
 EXPOSE 3001
-
-# Copy prisma schema
-COPY --from=builder /app/libs/prisma-iam/src/prisma/ ./prisma/
 
 # Change CMD to run migrations before starting
 CMD ["/bin/sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node main.js"]

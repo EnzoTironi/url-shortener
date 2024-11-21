@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { PasswordService } from '../utils/password.service';
-import { LoggerService } from '@url-shortener/logger';
 import { ISeedService } from './interfaces/seed-service.interface';
-import { SeedRepository } from './seed.repository';
+import { Injectable } from '@nestjs/common';
+import { LoggerService } from '@url-shortener/logger';
+import { PasswordService } from '../utils/password.service';
 import { RoleType } from '@url-shortener/prisma-client-iam';
+import { SeedRepository } from './seed.repository';
 
 @Injectable()
 export class SeedService implements ISeedService {
@@ -23,11 +23,14 @@ export class SeedService implements ISeedService {
   }
 
   private async createTestTenant() {
-    const tenant = await this.seedRepository.createOrUpdateTenant('Test Tenant', {
-      id: 'test-tenant',
-      name: 'Test Tenant',
-      subDomain: 'test',
-    });
+    const tenant = await this.seedRepository.createOrUpdateTenant(
+      'Test Tenant',
+      {
+        id: 'test-tenant',
+        name: 'Test Tenant',
+        subDomain: 'test',
+      }
+    );
 
     this.logger.log(`Test tenant created: ${tenant.id}`, 'SeedService');
     return tenant;

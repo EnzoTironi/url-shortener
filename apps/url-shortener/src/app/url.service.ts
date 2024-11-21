@@ -4,12 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUrlDto, UpdateUrlDto } from './dtos';
-import { UserJWT } from '@url-shortener/shared';
-import { ShortCodeService } from './utils/short-code.service';
-import { LoggerService } from '@url-shortener/logger';
 import { IUrlService } from './interfaces/url-service.interface';
-import { url } from '@database/url';
+import { LoggerService } from '@url-shortener/logger';
+import { ShortCodeService } from './utils/short-code.service';
 import { UrlRepository } from './url.repository';
+import { UserJWT } from '@url-shortener/shared';
+import { url } from '@database/url';
 
 type UrlResponse = Pick<url, 'id' | 'shortCode' | 'originalUrl'>;
 type UrlCreationResponse = { urlId: string; shortUrl: string };

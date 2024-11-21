@@ -1,14 +1,14 @@
+import { ExceptionFilterModule } from '@url-shortener/filters';
+import { HealthModule } from './health/health.module';
+import { HttpModule } from '@nestjs/axios';
 import { LoggerModule } from '@url-shortener/logger';
 import { Module } from '@nestjs/common';
-import { UrlController } from './url.controller';
-import { UrlService } from './url.service';
 import { PrismaClientUrlModule } from '@url-shortener/prisma-client-url';
-import { HealthModule } from './health/health.module';
 import { ShortCodeService } from './utils';
 import { TerminusModule } from '@nestjs/terminus';
-import { HttpModule } from '@nestjs/axios';
+import { UrlController } from './url.controller';
 import { UrlRepository } from './url.repository';
-import { ExceptionFilterModule } from '@url-shortener/filters';
+import { UrlService } from './url.service';
 
 @Module({
   imports: [

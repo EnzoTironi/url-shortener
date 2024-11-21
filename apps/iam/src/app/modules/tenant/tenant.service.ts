@@ -4,11 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateTenantDto, UpdateTenantDto } from './dtos';
-import { RoleType, Tenant } from '@database/iam';
-import { UserJWT } from '@url-shortener/shared';
-import { LoggerService } from '@url-shortener/logger';
 import { ITenantService } from './interfaces/tenant-service.interface';
+import { LoggerService } from '@url-shortener/logger';
+import { RoleType, Tenant } from '@database/iam';
 import { TenantRepository } from './tenant.repository';
+import { UserJWT } from '@url-shortener/shared';
 
 @Injectable()
 export class TenantService implements ITenantService {

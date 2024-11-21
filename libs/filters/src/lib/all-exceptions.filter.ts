@@ -1,14 +1,14 @@
 import {
-  ExceptionFilter,
-  Catch,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpException,
   HttpStatus,
   Inject,
 } from '@nestjs/common';
-import { Response, Request } from 'express';
 import { LoggerService } from '../../../logger/src';
 import { Prisma } from '../../../prisma-client-url/src';
+import { Request, Response } from 'express';
 import {
   isPrismaError,
   isPrismaValidationError,
@@ -53,13 +53,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private handleError(exception: unknown, path: string) {
     if (isPrismaError(exception)) {
       return this.handlePrismaKnownError(
-        exception as Prisma.PrismaClientKnownRequestError,
+        exception,
         path
       );
     }
     if (isPrismaValidationError(exception)) {
       return this.handlePrismaValidationError(
-        exception as Prisma.PrismaClientValidationError,
+        exception,
         path
       );
     }

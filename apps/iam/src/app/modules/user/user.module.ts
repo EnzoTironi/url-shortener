@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user.controller';
-import { UserService } from './user.service';
-import { UserRepository } from './user.repository';
 import { PasswordService } from '../utils/password.service';
 import { PrismaService } from '@url-shortener/prisma-client-iam';
+import { UserController } from './user.controller';
+import { UserRepository } from './user.repository';
+import { UserService } from './user.service';
+
 @Module({
   imports: [],
   controllers: [UserController],

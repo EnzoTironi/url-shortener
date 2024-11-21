@@ -1,9 +1,9 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
-import { LoggerService } from './logger.service';
 import {
   LOGGER_ROOT_NAME,
   LOGGER_FEATURE_NAME,
 } from './constants/logger.constants';
+import { LoggerService } from './logger.service';
 
 @Global()
 @Module({})

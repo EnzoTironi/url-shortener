@@ -13,4 +13,4 @@ export interface IAuthController {
   }>;
 
   getClaims(headers: Record<string, string>): UserJWT;
-} 
+}

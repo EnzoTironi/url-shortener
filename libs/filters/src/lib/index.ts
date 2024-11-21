@@ -1,6 +1,6 @@
-import { Provider } from '@nestjs/common';
 import { AllExceptionsFilter } from './all-exceptions.filter';
 import { LoggerService } from '../../../logger/src';
+import { Provider } from '@nestjs/common';
 
 export const ExceptionFilterProvider: Provider = {
   provide: 'APP_FILTER',

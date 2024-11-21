@@ -1,10 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { TenantService } from './tenant.service';
-import { TenantRepository } from './tenant.repository';
-import { LoggerService } from '@url-shortener/logger';
 import { CreateTenantDto, UpdateTenantDto } from './dtos';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { LoggerService } from '@url-shortener/logger';
 import { Tenant, RoleType } from '@database/iam';
+import { TenantRepository } from './tenant.repository';
+import { TenantService } from './tenant.service';
+import { Test, TestingModule } from '@nestjs/testing';
 import { mockUserInfo, createMockLoggerService } from '../../../../jest.setup';
 
 describe('TenantService', () => {

@@ -4,12 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateUserDto, UpdateRoleDto, UpdateUserDto } from './dtos/';
-import { PasswordService } from '../utils/password.service';
-import { RoleType } from '@database/iam';
-import { UserJWT } from '@url-shortener/shared';
-import { LoggerService } from '@url-shortener/logger';
 import { IUserService } from './interfaces/user-service.interface';
-import { User } from '@database/iam';
+import { LoggerService } from '@url-shortener/logger';
+import { PasswordService } from '../utils/password.service';
+import { RoleType, User } from '@database/iam';
+import { UserJWT } from '@url-shortener/shared';
 import { UserRepository } from './user.repository';
 
 @Injectable()

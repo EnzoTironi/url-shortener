@@ -1,7 +1,7 @@
-import { NestFactory } from '@nestjs/core';
-import { UrlModule } from './app/url.module';
 import * as swaggerJson from './app/docs/swagger.json';
 import swaggerUi from 'swagger-ui-express';
+import { NestFactory } from '@nestjs/core';
+import { UrlModule } from './app/url.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(UrlModule);

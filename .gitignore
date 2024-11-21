@@ -48,3 +48,13 @@ certs/
 *.pem
 *.key
 jwks.json
+
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log 
+url-shortener-cluster-config
+
+# Elasticsearch data
+elasticsearch-data/

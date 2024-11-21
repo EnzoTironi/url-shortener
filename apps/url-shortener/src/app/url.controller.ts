@@ -8,10 +8,9 @@ import {
   Put,
 } from '@nestjs/common';
 import { CreateUrlDto, UpdateUrlDto } from './dtos';
-import { UrlService } from './url.service';
-import { UserJWT } from '@url-shortener/shared';
-import { UserHeaders } from '@url-shortener/shared';
 import { IUrlController } from './interfaces/url-controller.interface';
+import { UrlService } from './url.service';
+import { UserJWT, UserHeaders } from '@url-shortener/shared';
 
 @Controller('url')
 export class UrlController implements IUrlController {

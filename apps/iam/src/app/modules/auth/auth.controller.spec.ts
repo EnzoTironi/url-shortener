@@ -1,7 +1,7 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos';
+import { Test, TestingModule } from '@nestjs/testing';
 import { UserJWT } from '@url-shortener/shared';
 
 describe('AuthController', () => {

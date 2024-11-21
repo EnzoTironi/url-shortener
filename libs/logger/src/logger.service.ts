@@ -1,5 +1,9 @@
+//dummy imports
+import * as pinoPretty from 'pino-pretty';
+import pinoElastic from 'pino-elasticsearch';
+
+import pino, { Logger, LoggerOptions } from 'pino';
 import { Injectable, Inject, Optional } from '@nestjs/common';
-import pino, { Logger, LoggerOptions, TransportTargetOptions } from 'pino';
 import {
   LOGGER_ROOT_NAME,
   LOGGER_FEATURE_NAME,
@@ -74,9 +78,11 @@ export class LoggerService {
   }
 
   private createLoggerOptions(): LoggerOptions {
-    return {
-      level: 'debug',
-      transport: {
+    const targets = [];
+
+    // Development transport - pretty print to console
+    if (process.env['NODE_ENV'] === 'development') {
+      targets.push({
         target: 'pino-pretty',
         options: {
           colorize: true,
@@ -84,18 +90,37 @@ export class LoggerService {
           translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l o',
           singleLine: true,
         },
+      });
+    }
+
+    // Elasticsearch transport for all environments
+    targets.push({
+      target: 'pino-elasticsearch',
+      options: {
+        node: process.env['ELASTICSEARCH_URL'] ?? 'http://elasticsearch:9200',
+        index: `logs-${this.rootName}-%{DATE}`, // e.g., logs-iam-2024.03.18
+        flushBytes: 1000,
+        flushInterval: 1000,
+        bulkSize: 200,
+        ecs: true, // Enable Elastic Common Schema
+        timestampField: '@timestamp',
+        documentType: '_doc',
       },
+    });
+
+    return {
+      level: process.env['LOG_LEVEL'] ?? 'info',
       base: {
-        root: this.rootName,
+        service: this.rootName,
         feature: this.featureName,
-        environment: process.env['NODE_ENV'] || 'development',
-        hostname: process.env['HOSTNAME'] || 'unknown',
+        environment: process.env['NODE_ENV'] ?? 'development',
+        hostname: process.env['HOSTNAME'] ?? 'unknown',
         pid: process.pid,
       },
-      serializers: {
-        error: pino.stdSerializers.err,
-      },
       timestamp: pino.stdTimeFunctions.isoTime,
+      transport: {
+        targets,
+      },
     };
   }
 }

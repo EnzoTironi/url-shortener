@@ -1,6 +1,6 @@
-import { DynamicModule, Global, Module } from '@nestjs/common';
-import { AllExceptionsFilter } from './all-exceptions.filter';
 import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionsFilter } from './all-exceptions.filter';
+import { DynamicModule, Global, Module } from '@nestjs/common';
 import { LoggerModule, LoggerService } from '../../../logger/src';
 
 @Global()

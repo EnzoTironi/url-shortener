@@ -1,9 +1,9 @@
+import { AuthRepository } from './auth.repository';
+import { IAuthService } from './interfaces/auth-service.interface';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { LoggerService } from '@url-shortener/logger';
 import { LoginDto } from './dtos/login.dto';
 import { PasswordService } from '../utils/password.service';
-import { LoggerService } from '@url-shortener/logger';
-import { IAuthService } from './interfaces/auth-service.interface';
-import { AuthRepository } from './auth.repository';
 
 @Injectable()
 export class AuthService implements IAuthService {

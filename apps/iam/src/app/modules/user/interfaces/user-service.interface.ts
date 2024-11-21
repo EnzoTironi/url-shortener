@@ -1,6 +1,6 @@
 import { CreateUserDto, UpdateRoleDto, UpdateUserDto } from '../dtos';
-import { UserJWT } from '@url-shortener/shared';
 import { User } from '@database/iam';
+import { UserJWT } from '@url-shortener/shared';
 
 type UserResponse = Pick<User, 'id' | 'email' | 'role' | 'tenantId'>;
 

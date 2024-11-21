@@ -1,7 +1,7 @@
+import { CreateUrlDto } from './dtos';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@url-shortener/prisma-client-url';
 import { url } from '@database/url';
-import { CreateUrlDto } from './dtos';
 
 @Injectable()
 export class UrlRepository {

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { TenantController } from './tenant.controller';
-import { TenantService } from './tenant.service';
-import { TenantRepository } from './tenant.repository';
-import { PrismaService } from '@url-shortener/prisma-client-iam';
 import { PasswordService } from '../utils/password.service';
+import { PrismaService } from '@url-shortener/prisma-client-iam';
+import { TenantController } from './tenant.controller';
+import { TenantRepository } from './tenant.repository';
+import { TenantService } from './tenant.service';
 
 @Module({
   controllers: [TenantController],

@@ -12,11 +12,11 @@ import { LoggerService } from '@url-shortener/logger';
 @Controller('health')
 export class HealthController {
   constructor(
-    private health: HealthCheckService,
-    private http: HttpHealthIndicator,
-    private prisma: PrismaHealthIndicator,
-    private prismaService: PrismaService,
-    private logger: LoggerService
+    private readonly health: HealthCheckService,
+    private readonly http: HttpHealthIndicator,
+    private readonly prisma: PrismaHealthIndicator,
+    private readonly prismaService: PrismaService,
+    private readonly logger: LoggerService
   ) {}
 
   @Get()
@@ -28,14 +28,14 @@ export class HealthController {
           this.prisma.pingCheck('database', this.prismaService, {
             timeout: 3000,
           }),
-        () =>
-          this.http.pingCheck('elasticsearch', 'http://elasticsearch:9200', {
-            timeout: 3000,
-          }),
-        () =>
-          this.http.pingCheck('jaeger', 'http://jaeger:16686', {
-            timeout: 3000,
-          }),
+        // () =>
+        //   this.http.pingCheck('elasticsearch', 'http://elasticsearch:9200', {
+        //     timeout: 3000,
+        //   }),
+        // () =>
+        //   this.http.pingCheck('jaeger', 'http://jaeger:16686', {
+        //     timeout: 3000,
+        //   }),
       ]);
 
       this.logger.log('Health check completed successfully', 'HealthCheck');

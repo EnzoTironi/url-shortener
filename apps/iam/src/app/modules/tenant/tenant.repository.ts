@@ -1,7 +1,7 @@
+import { CreateTenantDto, UpdateTenantDto } from './dtos';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@url-shortener/prisma-client-iam';
 import { Tenant } from '@database/iam';
-import { CreateTenantDto, UpdateTenantDto } from './dtos';
 
 @Injectable()
 export class TenantRepository {
@@ -30,4 +30,4 @@ export class TenantRepository {
       data: { deletedAt: new Date() },
     });
   }
-} 
+}
