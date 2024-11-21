@@ -1,5 +1,5 @@
 import { CreateTenantDto, UpdateTenantDto } from '../dtos';
-import { UserJWT } from '../../auth/dtos';
+import { UserJWT } from '@url-shortener/shared';
 import { Tenant } from '@database/iam';
 
 type TenantResponse = Pick<Tenant, 'id' | 'name' | 'subDomain'>;

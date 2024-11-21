@@ -2,11 +2,12 @@ import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthRepository } from './auth.repository';
-import { LoggerModule } from '@url-shortener/logger';
+import { PrismaService } from '@url-shortener/prisma-client-iam';
+import { PasswordService } from '../utils/password.service';
 
 @Module({
-  imports: [LoggerModule.forFeature('Auth-Service')],
+  imports: [],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository],
+  providers: [AuthService, AuthRepository, PrismaService, PasswordService],
 })
 export class AuthModule {}

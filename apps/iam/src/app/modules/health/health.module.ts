@@ -2,14 +2,11 @@ import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { HttpModule } from '@nestjs/axios';
 import { HealthController } from './health.controller';
-import { LoggerModule } from '@url-shortener/logger';
+import { PrismaService } from '@url-shortener/prisma-client-iam';
 
 @Module({
-  imports: [
-    TerminusModule,
-    HttpModule,
-    LoggerModule.forFeature('Health-Service'),
-  ],
+  imports: [TerminusModule, HttpModule],
+  providers: [PrismaService],
   controllers: [HealthController],
 })
 export class HealthModule {}

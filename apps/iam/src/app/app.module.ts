@@ -4,13 +4,15 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
 import { HealthModule } from './modules/health/health.module';
 import { SeedModule } from './modules/seed/seed.module';
-import { LoggerModule } from '@url-shortener/logger';
 import { PrismaClientIamModule } from '@url-shortener/prisma-client-iam';
 import { PasswordService } from './modules/utils/password.service';
+import { ExceptionFilterModule } from '@url-shortener/filters';
+import { LoggerModule } from '@url-shortener/logger';
 
 @Module({
   imports: [
-    LoggerModule.forRoot('iam-service'),
+    LoggerModule.forRoot('IAM_SERVICE'),
+    ExceptionFilterModule.forRoot('IAM_SERVICE'),
     PrismaClientIamModule,
     UserModule,
     TenantModule,

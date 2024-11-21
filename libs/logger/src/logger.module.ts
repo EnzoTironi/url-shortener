@@ -1,39 +1,45 @@
-import { DynamicModule, Global, Module, Provider } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { DynamicModule, Global, Module } from '@nestjs/common';
 import { LoggerService } from './logger.service';
 import {
-  LOGGER_SERVICE_NAME,
+  LOGGER_ROOT_NAME,
   LOGGER_FEATURE_NAME,
 } from './constants/logger.constants';
 
 @Global()
-@Module({
-  imports: [ConfigModule],
-})
+@Module({})
 export class LoggerModule {
   static forRoot(serviceName: string): DynamicModule {
-    const serviceNameProvider: Provider = {
-      provide: LOGGER_SERVICE_NAME,
-      useValue: serviceName,
-    };
-
     return {
       module: LoggerModule,
-      imports: [ConfigModule],
-      providers: [serviceNameProvider, LoggerService],
+      providers: [
+        {
+          provide: LOGGER_ROOT_NAME,
+          useValue: serviceName,
+        },
+        {
+          provide: LoggerService,
+          useFactory: (rootName: string) => new LoggerService(rootName),
+          inject: [LOGGER_ROOT_NAME],
+        },
+      ],
       exports: [LoggerService],
     };
   }
 
   static forFeature(featureName: string): DynamicModule {
-    const featureNameProvider: Provider = {
-      provide: LOGGER_FEATURE_NAME,
-      useValue: featureName,
-    };
-
     return {
       module: LoggerModule,
-      providers: [featureNameProvider, LoggerService],
+      providers: [
+        {
+          provide: LOGGER_FEATURE_NAME,
+          useValue: featureName,
+        },
+        {
+          provide: LoggerService,
+          useFactory: (featureName: string) => new LoggerService(featureName),
+          inject: [LOGGER_FEATURE_NAME],
+        },
+      ],
       exports: [LoggerService],
     };
   }

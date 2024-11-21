@@ -17,6 +17,7 @@
     "paths": {
       "@database/iam": ["node_modules/@prisma/client/iam"],
       "@database/url": ["node_modules/@prisma/client/url"],
+      "@url-shortener/filters": ["libs/filters/src"],
       "@url-shortener/logger": ["libs/logger/src"],
       "@url-shortener/prisma-client-iam": [
         "libs/prisma-client-iam/src/index.ts"

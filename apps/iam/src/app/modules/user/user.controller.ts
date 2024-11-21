@@ -1,4 +1,14 @@
-import { Controller, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Get,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto, UpdateRoleDto } from './dtos';
 import { UserJWT } from '@url-shortener/shared';
@@ -7,7 +17,9 @@ import { IUserController } from './interfaces/user-controller.interface';
 
 @Controller('user')
 export class UserController implements IUserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+  ) {}
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {

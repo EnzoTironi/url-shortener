@@ -104,9 +104,7 @@ export class UrlService implements IUrlService {
   }
 
   private async findUrlByShortCode(shortCode: string): Promise<url> {
-    const url = await this.urlRepository.findByShortCode(shortCode);
-    if (!url) throw new NotFoundException('URL not found');
-    return url;
+    return await this.urlRepository.findByShortCode(shortCode);
   }
 
   private async generateUniqueShortCode(): Promise<string> {

@@ -1,4 +1,5 @@
-import { LoginDto, UserJWT } from '../dtos';
+import { LoginDto } from '../dtos';
+import { UserJWT } from '@url-shortener/shared';
 
 export interface IAuthController {
   login(loginDto: LoginDto): Promise<{

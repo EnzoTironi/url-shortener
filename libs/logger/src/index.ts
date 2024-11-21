@@ -1,4 +1,4 @@
-export * from './constants';
-export * from './interfaces';
-export * from './logger.service';
 export * from './logger.module';
+export * from './logger.service';
+export * from './interfaces/logger-service.interface';
+export * from './constants/logger.constants';
