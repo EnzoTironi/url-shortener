@@ -38,10 +38,6 @@ services:
       - NODE_ENV=${NODE_ENV:-development}
       - DATABASE_URL_IAM=${DATABASE_URL_IAM}
       - IAM_SERVICE_URL=${IAM_SERVICE_URL}
-      - LOGSTASH_HOST=${LOGSTASH_HOST}
-      - LOGSTASH_PORT=${LOGSTASH_PORT}
-      - LOGSTASH_TLS=${LOGSTASH_TLS}
-      - JAEGER_OTLP_ENDPOINT=${JAEGER_OTLP_ENDPOINT}
     depends_on:
       iam-db:
         condition: service_healthy
@@ -68,10 +64,6 @@ services:
       - NODE_ENV=${NODE_ENV:-development}
       - DATABASE_URL_URL=${DATABASE_URL_URL}
       - URL_SERVICE_URL=${URL_SERVICE_URL}
-      - LOGSTASH_HOST=${LOGSTASH_HOST}
-      - LOGSTASH_PORT=${LOGSTASH_PORT}
-      - LOGSTASH_TLS=${LOGSTASH_TLS}
-      - JAEGER_OTLP_ENDPOINT=${JAEGER_OTLP_ENDPOINT}
     depends_on:
       url-db:
         condition: service_healthy
@@ -93,7 +85,7 @@ services:
     environment:
       - POSTGRES_DB=${IAM_DB_NAME:-iam_db}
       - POSTGRES_USER=${IAM_DB_USER:-iam_user}
-      - POSTGRES_PASSWORD=${IAM_DB_PASSWORD}
+      - POSTGRES_PASSWORD=${IAM_DB_PASSWORD:-iampass}
     volumes:
       - iam-db-data:/var/lib/postgresql/data
     networks:
@@ -118,7 +110,7 @@ services:
     environment:
       - POSTGRES_DB=${URL_DB_NAME:-url_db}
       - POSTGRES_USER=${URL_DB_USER:-url_user}
-      - POSTGRES_PASSWORD=${URL_DB_PASSWORD}
+      - POSTGRES_PASSWORD=${URL_DB_PASSWORD:-urlpass}
     volumes:
       - url-db-data:/var/lib/postgresql/data
     networks:

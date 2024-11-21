@@ -4,32 +4,42 @@
 # Tip: Modify "docker-build" options in project.json to change docker build args.
 #
 # Run the container with `docker run -p 3000:3000 -t iam`.
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy configuration files
+# Copy package files first
 COPY package*.json ./
 COPY nx.json ./
 COPY tsconfig*.json ./
 
-# Copy source code
-COPY apps ./apps
-COPY libs ./libs
+COPY . .
 
 # Install dependencies
 RUN npm ci
 
-COPY . .
+# Generate Prisma client
+RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma && \
+  npx prisma generate --schema=./libs/prisma-url/src/prisma/schema.prisma
 
-# Generate Prisma Client
-RUN npx prisma generate --schema=./libs/prisma-iam/src/prisma/schema.prisma
+# Build the app with Nx
+RUN npx nx build iam --verbose
 
-# Build the app
-RUN npx nx build iam
+# Final stage
+FROM node:18-alpine
 
-# Expose port
+# Copy built app
+COPY --from=builder /app/dist/apps/iam .
+# Copy the Prisma client to the correct location relative to the app
+COPY --from=builder /app/node_modules/@prisma/client/ ./node_modules/@prisma/client/
+
+COPY --from=builder /app/dist/apps/iam/package*.json .
+# Copy the logger package to the correct location relative to the app
+COPY --from=builder /app/node_modules/pino-pretty/ ./node_modules/pino-pretty/
+
+# Install production dependencies in the app directory
+RUN npm install --omit=dev
+
 EXPOSE 3001
 
-# Start the app
-CMD ["node", "dist/apps/iam/main.js"]
+CMD ["node", "main.js"]
