@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@url-shortener/prisma-client-iam';
-import { RoleType, Tenant, User } from '@url-shortener/prisma-client-iam';
+import {
+  PrismaService,
+  RoleType,
+  Tenant,
+  User,
+} from '@url-shortener/prisma-client-iam';
 
 @Injectable()
 export class SeedRepository {
