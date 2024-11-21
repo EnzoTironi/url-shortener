@@ -25,7 +25,7 @@
               }
             },
             "backend/http": {
-              "return_error_code": true
+              "return_error_details": "code"
             }
           }
         }
@@ -909,6 +909,11 @@
       "allow_origins": [
         "*"
       ],
+      "qos/ratelimit/router": {
+        "@comment": "20 requests every 5 minutes",
+        "client_max_rate": 20,
+        "every": "1m"
+      },
       "expose_headers": [
         "Content-Length"
       ],

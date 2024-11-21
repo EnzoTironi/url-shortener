@@ -66,12 +66,14 @@ export class UserService implements IUserService {
 
   private async findUser(id: string) {
     const user = await this.userRepository.findById(id);
-    const isNotDeleted = user?.deletedAt === null;
+    const isDeleted = user?.deletedAt !== null;
 
-    if (user && isNotDeleted) return user;
+    if (!user || isDeleted) {
+      this.logger.warn(`User not found: ${id}`, 'UserService');
+      throw new NotFoundException('User not found');
+    }
 
-    this.logger.warn(`User not found: ${id}`, 'UserService');
-    throw new NotFoundException('User not found');
+    return user;
   }
 
   private async hashPassword(password: string) {

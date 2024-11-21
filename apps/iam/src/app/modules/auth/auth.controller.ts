@@ -8,6 +8,7 @@ import { UserJWT } from '@url-shortener/shared';
 @Controller('auth')
 export class AuthController implements IAuthController {
   constructor(private readonly authService: AuthService) {}
+  
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return await this.authService.login(loginDto);

@@ -21,8 +21,8 @@ export class AuthService implements IAuthService {
 
   private async findUser(loginDto: LoginDto) {
     const user = await this.authRepository.findUserByEmailAndTenant(loginDto);
-
-    if (!user) {
+    const isDeleted = user?.deletedAt !== null;
+    if (!user || isDeleted) {
       this.logger.warn(
         `Login failed: User not found - ${loginDto.email}`,
         'AuthService'
