@@ -6,17 +6,26 @@ import {
   Param,
   Post,
   Put,
+  HttpCode,
+  HttpStatus,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreateUrlDto, UpdateUrlDto } from './dtos';
-import { IUrlController } from './interfaces/url-controller.interface';
+import { IUrlController } from './interfaces/url.interface';
 import { UrlService } from './url.service';
-import { UserJWT, UserHeaders } from '@url-shortener/shared';
+import {
+  UserJWT,
+  UserHeaders,
+  HttpResponseInterceptor,
+} from '@url-shortener/shared';
 
 @Controller('url')
+@UseInterceptors(HttpResponseInterceptor)
 export class UrlController implements IUrlController {
   constructor(private readonly urlService: UrlService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async createUrl(
     @Body() createUrlDto: CreateUrlDto,
     @UserHeaders() userInfo: UserJWT
@@ -25,6 +34,7 @@ export class UrlController implements IUrlController {
   }
 
   @Put(':urlId')
+  @HttpCode(HttpStatus.OK)
   async updateUrl(
     @Param('urlId') urlId: string,
     @Body() updateUrlDto: UpdateUrlDto,
@@ -34,6 +44,7 @@ export class UrlController implements IUrlController {
   }
 
   @Delete(':urlId')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async deleteUrl(
     @Param('urlId') urlId: string,
     @UserHeaders() userInfo: UserJWT
@@ -60,15 +71,16 @@ export class UrlController implements IUrlController {
   }
 
   @Post('add-user-id/:urlId')
+  @HttpCode(HttpStatus.OK)
   async addUserId(
     @Param('urlId') urlId: string,
     @UserHeaders() userInfo: UserJWT
   ) {
-    return this.urlService.addUserId(urlId, userInfo);
+    return await this.urlService.addUserId(urlId, userInfo);
   }
 
   @Get('count-access/:shortCode')
-  async countAccess(@Param('shortCode') shortCode: string) {
-    return await this.urlService.countAccess(shortCode);
+  async incrementClickCount(@Param('shortCode') shortCode: string) {
+    return await this.urlService.incrementClickCount(shortCode);
   }
 }
