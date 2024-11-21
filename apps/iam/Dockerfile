@@ -42,4 +42,8 @@ RUN npm install --omit=dev
 
 EXPOSE 3001
 
-CMD ["node", "main.js"]
+# Copy prisma schema
+COPY --from=builder /app/libs/prisma-iam/src/prisma/ ./prisma/
+
+# Change CMD to run migrations before starting
+CMD ["/bin/sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node main.js"]

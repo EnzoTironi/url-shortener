@@ -42,9 +42,16 @@ COPY --from=builder /app/dist/apps/url-shortener/package*.json .
 # Copy the logger package to the correct location relative to the app
 COPY --from=builder /app/node_modules/pino-pretty/ ./node_modules/pino-pretty/
 
+# Copy migrations
+COPY --from=builder /app/libs/prisma-url/src/prisma/migrations ./libs/prisma-url/src/prisma/migrations
+
 # Install production dependencies
 RUN npm install --omit=dev --verbose
 
 EXPOSE 3002
 
-CMD ["node", "dist/apps/url-shortener/main.js"]
+# Copy prisma schema
+COPY --from=builder /app/libs/prisma-url/src/prisma/ ./prisma/
+
+# Change CMD to run migrations before starting
+CMD ["/bin/sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node dist/apps/url-shortener/main.js"]

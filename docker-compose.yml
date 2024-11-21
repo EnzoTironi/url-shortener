@@ -14,19 +14,6 @@ services:
       - shortener-network
     restart: unless-stopped
 
-  # JWT Key Generator - Generates keys for JWT authentication
-  generate-keys:
-    image: node:${NODE_VERSION:-18-alpine}
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: >
-      sh -c "npm install && npm run generate-jwks"
-    environment:
-      - NODE_ENV=${NODE_ENV:-development}
-    networks:
-      - shortener-network
-
   # IAM Service - Handles user authentication and authorization
   iam:
     build:
@@ -41,8 +28,6 @@ services:
     depends_on:
       iam-db:
         condition: service_healthy
-      iam-migrate:
-        condition: service_completed_successfully
     networks:
       - shortener-network
     restart: unless-stopped
@@ -67,8 +52,6 @@ services:
     depends_on:
       url-db:
         condition: service_healthy
-      url-migrate:
-        condition: service_completed_successfully
     networks:
       - shortener-network
     restart: unless-stopped
@@ -128,39 +111,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
-  # IAM Migration service
-  iam-migrate:
-    image: node:${NODE_VERSION:-18-alpine}
-    command: >
-      sh -c "npx prisma migrate deploy --schema=./libs/prisma-iam/src/prisma/schema.prisma"
-    volumes:
-      - .:/app
-    working_dir: /app
-    environment:
-      - DATABASE_URL_IAM=${DATABASE_URL_IAM}
-      - NODE_ENV=development
-    depends_on:
-      iam-db:
-        condition: service_healthy
-    networks:
-      - shortener-network
-
-  # URL Migration service
-  url-migrate:
-    image: node:${NODE_VERSION:-18-alpine}
-    command: >
-      sh -c "npm install && npx prisma migrate deploy --schema=./libs/prisma-url/src/prisma/schema.prisma"
-    volumes:
-      - .:/app
-    working_dir: /app
-    environment:
-      - DATABASE_URL_URL=${DATABASE_URL_URL}
-    depends_on:
-      url-db:
-        condition: service_healthy
-    networks:
-      - shortener-network
 
 volumes:
   iam-db-data:
