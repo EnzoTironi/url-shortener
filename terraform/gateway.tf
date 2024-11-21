@@ -1,4 +1,6 @@
-# Create ConfigMap for KrakenD configuration
+# KrakenD Gateway
+
+# KrakenD ConfigMaps
 resource "kubernetes_config_map" "krakend_config" {
   metadata {
     name      = "krakend-config"
@@ -8,11 +10,8 @@ resource "kubernetes_config_map" "krakend_config" {
   data = {
     "krakend.json" = file("${path.root}/../apps/api-gateway/krakend.k8s.json")
   }
-
-  depends_on = [kubernetes_namespace.url_shortener]
 }
 
-# Create ConfigMap for certificates
 resource "kubernetes_config_map" "krakend_certs" {
   metadata {
     name      = "krakend-certs"
@@ -23,11 +22,8 @@ resource "kubernetes_config_map" "krakend_certs" {
     "jwks.json"    = file("${path.root}/../certs/jwks.json")
     "private.json" = file("${path.root}/../certs/private.json")
   }
-
-  depends_on = [kubernetes_namespace.url_shortener]
 }
 
-# Create deployment for KrakenD
 resource "kubernetes_deployment" "krakend" {
   metadata {
     name      = "krakend"
@@ -57,6 +53,11 @@ resource "kubernetes_deployment" "krakend" {
 
           port {
             container_port = 8080
+          }
+
+          env {
+            name  = "KRAKEND_PORT"
+            value = 8080
           }
 
           # Mount the main config file
@@ -122,23 +123,8 @@ resource "kubernetes_deployment" "krakend" {
       }
     }
   }
-
-  provisioner "local-exec" {
-    command = "sleep 30" # Adjust the duration as needed
-  }
-
-  depends_on = [
-    kubernetes_config_map.krakend_config,
-    kubernetes_config_map.krakend_certs,
-    kubernetes_service.iam,
-    kubernetes_service.url_shortener,
-    kubernetes_deployment.iam,
-    kubernetes_deployment.url_shortener,
-    null_resource.wait_for_kubernetes
-  ]
 }
 
-# Create service for KrakenD
 resource "kubernetes_service" "krakend" {
   metadata {
     name      = "krakend"
@@ -147,7 +133,7 @@ resource "kubernetes_service" "krakend" {
 
   spec {
     selector = {
-      app = kubernetes_deployment.krakend.spec[0].template[0].metadata[0].labels.app
+      app = "krakend"
     }
 
     port {
@@ -158,6 +144,4 @@ resource "kubernetes_service" "krakend" {
 
     type = "NodePort"
   }
-
-  depends_on = [kubernetes_deployment.krakend]
 }

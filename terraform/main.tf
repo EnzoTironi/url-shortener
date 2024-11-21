@@ -14,11 +14,7 @@ terraform {
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.23.0"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.9.0"
+      version = "~> 2.33.0"
     }
   }
   required_version = ">= 1.0.0"
@@ -26,16 +22,6 @@ terraform {
 
 provider "kind" {}
 provider "docker" {}
-
-provider "kubernetes" {
-  config_path = pathexpand("~/.kube/config")
-}
-
-provider "helm" {
-  kubernetes {
-    config_path = pathexpand("~/.kube/config")
-  }
-}
 
 # Create a Kind cluster
 resource "kind_cluster" "default" {
@@ -49,96 +35,81 @@ resource "kind_cluster" "default" {
     node {
       role = "control-plane"
 
+      # Port mappings for services
       extra_port_mappings {
         container_port = 30002
         host_port      = 3002
       }
-
       extra_port_mappings {
         container_port = 30001
         host_port      = 3001
       }
-
       extra_port_mappings {
         container_port = 30080
         host_port      = 8080
+      }
+      extra_port_mappings {
+        container_port = 30561
+        host_port      = 5601
+      }
+      extra_port_mappings {
+        container_port = 30686
+        host_port      = 16686
       }
     }
   }
 }
 
-# Wait for Kubernetes API to be available
-resource "null_resource" "wait_for_kubernetes" {
+# Configure kubernetes provider to use the cluster's context
+provider "kubernetes" {
+  host = kind_cluster.default.endpoint
+
+  client_certificate     = kind_cluster.default.client_certificate
+  client_key             = kind_cluster.default.client_key
+  cluster_ca_certificate = kind_cluster.default.cluster_ca_certificate
+}
+
+# Wait for cluster to be ready
+resource "null_resource" "wait_for_cluster" {
   depends_on = [kind_cluster.default]
 
   provisioner "local-exec" {
+    command = "sleep 20"
+  }
+}
+
+# Build and load IAM service image
+resource "null_resource" "build_load_iam" {
+  depends_on = [null_resource.wait_for_cluster]
+
+  provisioner "local-exec" {
     command = <<-EOT
-      until kubectl get nodes; do
-        echo "Waiting for Kubernetes API..."
-        sleep 5
-      done
+      cd ${path.root}/../&& \
+      docker build -t iam:local -f apps/iam/Dockerfile . && \
+      kind load docker-image iam:local --name ${kind_cluster.default.name}
     EOT
   }
 }
 
-# Create a namespace
-resource "kubernetes_namespace" "url_shortener" {
-  metadata {
-    name = "url-shortener"
-  }
-  depends_on = [null_resource.wait_for_kubernetes]
-}
+# Build and load URL Shortener service image
+resource "null_resource" "build_load_url_shortener" {
+  depends_on = [null_resource.wait_for_cluster]
 
-# Build the IAM Docker image
-resource "null_resource" "docker_build_iam" {
   provisioner "local-exec" {
     command = <<-EOT
-      cd ${path.root}/.. && \
-      docker build \
-        -t iam:local \
-        -f apps/iam/Dockerfile .
+      cd ${path.root}/../ && \
+      docker build -t url-shortener:local -f apps/url-shortener/Dockerfile . && \
+      kind load docker-image url-shortener:local --name ${kind_cluster.default.name}
     EOT
   }
-  depends_on = [null_resource.wait_for_kubernetes]
 }
 
-# Load the IAM image into Kind cluster
-resource "null_resource" "kind_load_iam_image" {
-  depends_on = [kind_cluster.default, null_resource.docker_build_iam, null_resource.wait_for_kind]
-
-  provisioner "local-exec" {
-    command = "kind load docker-image iam:local --name ${kind_cluster.default.name}"
-  }
+# Output the cluster name
+output "cluster_name" {
+  value = kind_cluster.default.name
 }
 
-# Build the URL Shortener Docker image
-resource "null_resource" "docker_build_url" {
-  provisioner "local-exec" {
-    command = <<-EOT
-      cd ${path.root}/.. && \
-      docker build \
-        -t url-shortener:local \
-        -f apps/url-shortener/Dockerfile .
-    EOT
-  }
-  depends_on = [null_resource.wait_for_kubernetes]
-}
-
-# Load the URL Shortener image into Kind cluster
-resource "null_resource" "kind_load_url_image" {
-  depends_on = [kind_cluster.default, null_resource.docker_build_url, null_resource.wait_for_kind]
-
-  provisioner "local-exec" {
-    command = "kind load docker-image url-shortener:local --name ${kind_cluster.default.name}"
-  }
-
-}
-
-
-resource "null_resource" "wait_for_kind" {
-  depends_on = [kind_cluster.default]
-
-  provisioner "local-exec" {
-    command = "sleep 30" # Adjust the duration as needed
-  }
+# Output the kubeconfig path
+output "kubeconfig_path" {
+  value = kind_cluster.default.kubeconfig_path
 }
