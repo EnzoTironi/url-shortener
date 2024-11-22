@@ -189,7 +189,7 @@
       ],
       "backend": [
         {
-          "url_pattern": "api/user/{id}",
+          "url_pattern": "api/user/update/{id}",
           "host": [
             "http://iam:3001"
           ],

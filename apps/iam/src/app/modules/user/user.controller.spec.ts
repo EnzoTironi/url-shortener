@@ -87,7 +87,10 @@ describe('UserController', () => {
 
   describe('updateRole', () => {
     it('should update a user role', async () => {
-      const updateRoleDto: UpdateRoleDto = { role: 'ADMIN' };
+      const updateRoleDto: UpdateRoleDto = {
+        userId: 'test-user-id',
+        role: 'ADMIN',
+      };
 
       const result = await controller.updateRole(updateRoleDto, mockUserInfo);
 

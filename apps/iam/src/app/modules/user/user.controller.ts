@@ -29,7 +29,7 @@ export class UserController implements IUserController {
     return await this.userService.create(createUserDto);
   }
 
-  @Put(':id')
+  @Put('update/:id')
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id') id: string,

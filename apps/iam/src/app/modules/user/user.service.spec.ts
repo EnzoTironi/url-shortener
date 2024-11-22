@@ -129,7 +129,11 @@ describe('UserService', () => {
         const updatedUser = { ...mockUser, email: updateUserDto.email };
         mockUserRepository.update.mockResolvedValue(updatedUser);
 
-        const result = await service.update(userId, updateUserDto, mockUserInfo);
+        const result = await service.update(
+          userId,
+          updateUserDto,
+          mockUserInfo
+        );
 
         expect(result).toEqual({
           id: updatedUser.id,
@@ -225,6 +229,7 @@ describe('UserService', () => {
   describe('updateRole', () => {
     const updateRoleDto: UpdateRoleDto = {
       role: RoleType.TENANT_ADMIN,
+      userId: mockUser.id,
     };
 
     beforeEach(() => {
@@ -288,9 +293,9 @@ describe('UserService', () => {
           userId: mockUser.id,
         };
 
-        await expect(service.updateRole(updateRoleDto, selfUser)).rejects.toThrow(
-          ForbiddenException
-        );
+        await expect(
+          service.updateRole(updateRoleDto, selfUser)
+        ).rejects.toThrow(ForbiddenException);
         expect(repository.updateRole).not.toHaveBeenCalled();
       });
     });

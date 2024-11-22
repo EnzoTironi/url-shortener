@@ -52,11 +52,11 @@ export class UserService implements IUserService {
   }
 
   async updateRole(updateRoleDto: UpdateRoleDto, userInfo: UserJWT) {
-    const user = await this.findUser(userInfo.userId!);
+    const user = await this.findUser(updateRoleDto.userId);
     this.verifyAccess(user, userInfo, Actions.ROLE);
 
     const updatedUser = await this.userRepository.updateRole(
-      userInfo.userId!,
+      updateRoleDto.userId,
       updateRoleDto.role
     );
 
