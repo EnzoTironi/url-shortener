@@ -1,0 +1,2378 @@
+{
+  "info": {
+    "name": "URL Shortener API",
+    "description": "API for URL shortening service with multi-tenant support\n\nRole Requirements:\n- ADMIN: Can manage tenants and user roles\n- TENANT_ADMIN: Can manage users within their tenant\n- USER: Can manage their own URLs\n\nPublic Endpoints:\n- /auth/token (Login)\n- /url/{shortCode} (URL Redirect)\n- Health check endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "token"
+              ]
+            },
+            "description": "Generic login endpoint that automatically sets the appropriate token based on the user's role from X-User-Roles header."
+          },
+          "response": []
+        },
+        {
+          "name": "Claims",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();\r",
+                  "\r",
+                  "if (response.userId) {\r",
+                  "    pm.collectionVariables.set('testUserId', response.userId);\r",
+                  "    console.log('✓ User id set');\r",
+                  "} else {\r",
+                  "    console.error('✗ userId in response');\r",
+                  "}\r",
+                  "pm.test(\"Response status code is 200\", function () {\r",
+                  "    pm.expect(pm.response.code).to.equal(200);\r",
+                  "});\r",
+                  "\r",
+                  "\r",
+                  "pm.test(\"Response has the required fields\", function () {\r",
+                  "    const responseData = pm.response.json();\r",
+                  "    \r",
+                  "    pm.expect(responseData).to.be.an('object');\r",
+                  "    pm.expect(responseData.tenantId).to.exist;\r",
+                  "    pm.expect(responseData.userHost).to.exist;\r",
+                  "    pm.expect(responseData.userId).to.exist;\r",
+                  "    pm.expect(responseData.userRoles).to.exist;\r",
+                  "});\r",
+                  "\r",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testUserEmail}}\",\n    \"password\": \"{{testUserPassword}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/claims",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "claims"
+              ]
+            },
+            "description": "Generic login endpoint that automatically sets the appropriate token based on the user's role from X-User-Roles header."
+          },
+          "response": []
+        },
+        {
+          "name": "Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "if (response.access_token) {",
+                  "    pm.collectionVariables.set('adminAccessToken', response.access_token);",
+                  "    pm.collectionVariables.set('accessToken', response.access_token);",
+                  "    console.log('✓ Admin access token set');",
+                  "} else {",
+                  "    console.error('✗ No access token in response');",
+                  "}",
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData).to.be.an('object');",
+                  "  pm.expect(responseData.access_token).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Access token is a non-empty string\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.access_token).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Access token should not be empty\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testAdminEmail}}\",\n    \"password\": \"{{testAdminPassword}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Tenant Admin Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "if (response.access_token) {",
+                  "    pm.collectionVariables.set('tenantAdminAccessToken', response.access_token);",
+                  "    pm.collectionVariables.set('accessToken', response.access_token);",
+                  "    console.log('✓ Tenant Admin access token set');",
+                  "} else {",
+                  "    console.error('✗ No access token in response');",
+                  "}",
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData).to.be.an('object');",
+                  "  pm.expect(responseData.access_token).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Access token is not empty\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.access_token).to.exist.and.to.not.be.empty;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testTenantAdminEmail}}\",\n    \"password\": \"{{testTenantAdminPassword}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "",
+                  "if (response.access_token) {",
+                  "    pm.collectionVariables.set('userAccessToken', response.access_token);",
+                  "    pm.collectionVariables.set('accessToken', response.access_token);",
+                  "    console.log('✓ User access token set');",
+                  "} else {",
+                  "    console.error('✗ No access token in response');",
+                  "}",
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.access_token).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Access token is a non-empty string\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.access_token).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Access token should not be empty\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response time is less than 200ms\", function () {",
+                  "  pm.expect(pm.response.responseTime).to.be.below(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{testUserEmail}}\",\n    \"password\": \"{{testUserPassword}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/token",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "token"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for different roles"
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Create User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 409\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(409);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.statusCode).to.exist;",
+                  "    pm.expect(responseData.message).to.exist;",
+                  "    pm.expect(responseData.error).to.exist;",
+                  "    pm.expect(responseData.timestamp).to.exist;",
+                  "    pm.expect(responseData.path).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Timestamp is in a valid date format\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.timestamp).to.match(/\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z/);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Verify Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Error message is not empty\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.error).to.exist.and.to.not.be.empty;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"newuserAdd-{{$timestamp}}@example.com\",\n    \"password\": \"Password123!\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 404\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.statusCode).to.exist;",
+                  "    pm.expect(responseData.message).to.exist;",
+                  "    pm.expect(responseData.error).to.exist;",
+                  "    pm.expect(responseData.timestamp).to.exist;",
+                  "    pm.expect(responseData.path).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Message is a non-empty string\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Timestamp is in a valid date format\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "",
+                  "  pm.expect(responseData.timestamp).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/, \"Timestamp should be in valid date format\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Error is a non-empty string\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.error).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Error should not be empty\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{userId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 204\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(204);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/user/{{testUserId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "{{testUserId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 404\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData).to.be.an('object');",
+                  "  pm.expect(responseData.statusCode).to.exist;",
+                  "  pm.expect(responseData.message).to.exist;",
+                  "  pm.expect(responseData.error).to.exist;",
+                  "  pm.expect(responseData.timestamp).to.exist;",
+                  "  pm.expect(responseData.path).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": \"{{testUserId}}\",\n    \"role\": \"TENANT_ADMIN\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user/role",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user",
+                "role"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "User management endpoints. Create is public, other operations require authentication. Role updates require ADMIN role."
+    },
+    {
+      "name": "Tenant",
+      "item": [
+        {
+          "name": "Create Tenant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 409\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(409);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Presence of statusCode, message, error, timestamp, and path fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.statusCode).to.exist;",
+                  "    pm.expect(responseData.message).to.exist;",
+                  "    pm.expect(responseData.error).to.exist;",
+                  "    pm.expect(responseData.timestamp).to.exist;",
+                  "    pm.expect(responseData.path).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Timestamp is in a valid date format\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.timestamp).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/, \"Timestamp should be in valid date format\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New Tenant {{$timestamp}}\",\n    \"subDomain\": \"newtenant-{{timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenant",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tenant"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Tenant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 404\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(404);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.statusCode).to.exist;",
+                  "    pm.expect(responseData.message).to.exist;",
+                  "    pm.expect(responseData.error).to.exist;",
+                  "    pm.expect(responseData.timestamp).to.exist;",
+                  "    pm.expect(responseData.path).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Message is a non-empty string\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.message).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Message should not be empty\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Timestamp is in a valid date format\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData).to.be.an('object');",
+                  "  pm.expect(responseData.timestamp).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/, \"Timestamp should be in a valid date format\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Tenant Name\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tenant/{{tenantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tenant",
+                "{{tenantId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Tenant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 204\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(204);",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tenant/{{tenantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tenant",
+                "{{tenantId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Tenant management endpoints. All operations require ADMIN role."
+    },
+    {
+      "name": "URL",
+      "item": [
+        {
+          "name": "Create Short URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 201\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    pm.expect(responseData.statusCode).to.equal(201);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields - shortUrl, urlId, and userId\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.data).to.be.an('object');",
+                  "    pm.expect(responseData.data.shortUrl).to.exist;",
+                  "    pm.expect(responseData.data.urlId).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"UrlId is a non-empty string\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.data).to.be.an('object');",
+                  "    pm.expect(responseData.data.urlId).to.be.a('string').and.to.have.lengthOf.at.least(1, \"UrlId should not be empty\");",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"originalUrl\": \"https://www.example.com/very/long/url/that/needs/shortening\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "url"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get URL by Short Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "  pm.expect(responseData.statusCode).to.equal(200);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/url/{{shortCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "url",
+                "{{shortCode}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User URLs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields - id, originalUrl, and shortCode\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData).to.be.an('array');",
+                  "  responseData.forEach(function(item) {",
+                  "    pm.expect(item).to.be.an('object');",
+                  "    pm.expect(item).to.have.property('id');",
+                  "    pm.expect(item).to.have.property('originalUrl');",
+                  "    pm.expect(item).to.have.property('shortCode');",
+                  "  });",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"OriginalUrl is in a valid URL format\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData).to.be.an('array');",
+                  "  responseData.forEach(function(item) {",
+                  "    pm.expect(item.originalUrl).to.match(/^https?:\\/\\/www\\..+/);",
+                  "  });",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"ShortCode is a non-empty string\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData).to.be.an('array');",
+                  "  responseData.forEach(function(item) {",
+                  "    pm.expect(item.shortCode).to.be.a('string').and.to.have.lengthOf.at.least(1, \"ShortCode should not be empty\");",
+                  "  });",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/urls",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "urls"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Content-Type header is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Validate the error_url_shortener_service object\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.error_url_shortener_service).to.exist.and.to.be.an('object');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Verify that http_status_code is a non-negative integer\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.error_url_shortener_service.http_status_code).to.be.a('number').and.to.be.at.least(0);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Http_body and http_body_encoding are non-empty strings\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "",
+                  "  pm.expect(responseData).to.be.an('object');",
+                  "  pm.expect(responseData.error_url_shortener_service.http_body).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+                  "  pm.expect(responseData.error_url_shortener_service.http_body_encoding).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"url\": \"https://www.newexample.com/updated/url\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/url/{{urlId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "url",
+                "{{urlId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "    pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response Content-Type is application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Validate the error_url_shortener_service object\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.error_url_shortener_service).to.exist.and.to.be.an('object');",
+                  "  pm.expect(responseData.error_url_shortener_service.http_status_code).to.exist.and.to.be.a('number');",
+                  "  pm.expect(responseData.error_url_shortener_service.http_body).to.exist.and.to.be.a('string');",
+                  "  pm.expect(responseData.error_url_shortener_service.http_body_encoding).to.exist.and.to.be.a('string');",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Validate http_status_code is a non-negative integer\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.error_url_shortener_service.http_status_code).to.be.a('number');",
+                  "  pm.expect(responseData.error_url_shortener_service.http_status_code).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Http_body and http_body_encoding are present and non-empty strings\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.error_url_shortener_service.http_body).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+                  "    pm.expect(responseData.error_url_shortener_service.http_body_encoding).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/url/{{urlId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "url",
+                "{{urlId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Count URL Access",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Response status code is 200\", function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Response has the required fields\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "",
+                  "    pm.expect(responseData).to.be.an('object');",
+                  "    pm.expect(responseData.error_url_shortener_service).to.exist;",
+                  "    pm.expect(responseData.http_status_code).to.exist;",
+                  "    pm.expect(responseData.http_body).to.exist;",
+                  "    pm.expect(responseData.http_body_encoding).to.exist;",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Validate that http_status_code is a non-negative integer\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.error_url_shortener_service.http_status_code).to.be.a('number');",
+                  "  pm.expect(responseData.error_url_shortener_service.http_status_code).to.be.at.least(0);",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Http body is a non-empty string\", function () {",
+                  "    const responseData = pm.response.json();",
+                  "    ",
+                  "    pm.expect(responseData.error_url_shortener_service.http_body).to.be.a('string').and.to.have.lengthOf.at.least(1, \"Value should not be empty\");",
+                  "});",
+                  "",
+                  "",
+                  "pm.test(\"Http body encoding is a valid encoding format\", function () {",
+                  "  const responseData = pm.response.json();",
+                  "  ",
+                  "  pm.expect(responseData.error_url_shortener_service.http_body_encoding).to.be.a('string').and.to.match(/^[A-Za-z0-9+\\/=]+$/);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{userAccessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/url/count-access/{{shortCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "url",
+                "count-access",
+                "{{shortCode}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add User ID to URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/url/add-user-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "url",
+                "add-user-id"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "URL management endpoints. Create/Update/Delete require authentication, redirect is public."
+    },
+    {
+      "name": "Tests",
+      "item": [
+        {
+          "name": "1. Authentication Tests",
+          "item": [
+            {
+              "name": "1.1 Login with Valid Credentials",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response has valid JWT token\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.access_token).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{testUserEmail}}\",\n    \"password\": \"{{testUserPassword}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/token",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "token"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "1.1 Login with Invalid Password",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{testUserEmail}}\",\n    \"password\": \"{{wrongPassword}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/token",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "token"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "1.1 Login with Invalid Email format",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Error response contains expected error message\", function () {",
+                      "    const errorResponse = pm.response.json();",
+                      "    pm.expect(errorResponse.error_iam_service.http_body).to.include('Invalid credentials');",
+                      "});",
+                      "",
+                      "pm.test(\"Error response contains expected Unauthorized\", function () {",
+                      "    const errorResponse = pm.response.json();",
+                      "    pm.expect(errorResponse.error_iam_service.http_body).to.include('Unauthorized');",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{testUserEmail}}\",\n    \"password\": \"wrongpassword\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/token",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "token"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "1.1 Login with Non-existent Email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 401\", function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "",
+                      "pm.test(\"Error response contains expected error message\", function () {",
+                      "    const errorResponse = pm.response.json();",
+                      "    pm.expect(errorResponse.error_code.http_body).to.include('Invalid credentials');",
+                      "});",
+                      "",
+                      "pm.test(\"Error response contains expected Unauthorized\", function () {",
+                      "    const errorResponse = pm.response.json();",
+                      "    pm.expect(errorResponse.error_code.http_body).to.include('Unauthorized');",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{nonExistentEmail}}\",\n    \"password\": \"{{testUserPassword}}\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/token",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "token"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "1.1 Login with Missing Tenant ID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"{{testUserEmail}}\",\n    \"password\": \"{{testUserPassword}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/token",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "auth",
+                    "token"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "2. User Management Tests",
+          "item": [
+            {
+              "name": "2.1 Create User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains user details\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.id).to.exist;",
+                      "    pm.expect(responseData.email).to.exist;",
+                      "    pm.expect(responseData.tenantId).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"newuser@test.com\",\n    \"password\": \"NewUser@123\",\n    \"tenantId\": \"{{testTenantId}}\",\n    \"role\": \"USER\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/user",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2.1 Create User with Invalid Email Format",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Response contains statusCode 400\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.statusCode).to.equal(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains error message for invalid email format\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.message).to.eql([\"Invalid email format\"]);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"invalid-email\",\n    \"password\": \"NewUser@123\",\n    \"tenantId\": \"{{testTenantId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/user",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2.1 Create User without TenantID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains message property with value 'Tenant ID is required'\", function () {",
+                      "    pm.response.to.include.jsonBody('message', [",
+                      "        \"Tenant ID is required\",",
+                      "        \"Tenant ID must be a string\"",
+                      "    ]);",
+                      "});",
+                      "",
+                      "pm.test(\"Error is 'Bad Request'\", function () {",
+                      "    pm.expect(pm.response.json().error).to.eql('Bad Request');",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"newuser3@test.com\",\n    \"password\": \"password\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/user",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2.2 Update User Profile",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains updated user details\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.email).to.equal('updated@test.com');",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{userAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"updatedadad@test.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/user/{{testUserId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{testUserId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2.2 Admin Update Any User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains updated user details\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.email).to.equal('adminupdated@test.com');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"adminupdated@test.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/user/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{userId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2.2 Tenant Admin Update User in Their Tenant",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains updated user details\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.email).to.equal('tenantadminupdated@test.com');",
+                      "    pm.expect(responseData.tenantId).to.equal(pm.variables.get('testTenantId'));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{tenantAdminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"email\": \"tenantadminupdated@test.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/user/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{userId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2.3 Admin Delete User",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/user/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{userId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "2.3 Tenant Admin Delete User in Their Tenant",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{tenantAdminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/user/{{userId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "user",
+                    "{{userId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "3. Tenant Management Tests",
+          "item": [
+            {
+              "name": "3.1 Create New Tenant",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains tenant details\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.id).to.exist;",
+                      "    pm.expect(responseData.name).to.exist;",
+                      "    pm.expect(responseData.subDomain).to.exist;",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"New Test Tenant {{$timestamp}}\",\n    \"subDomain\": \"newtest{{$timestamp}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tenant",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tenant"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3.1 Create Tenant with Invalid Subdomain",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains subdomain validation error\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.message).to.exist;",
+                      "    pm.expect(responseData.message).to.include('subdomain');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Invalid Subdomain Tenant\",\n    \"subDomain\": \"invalid@subdomain\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tenant",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tenant"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3.2 Update Tenant Details",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains updated tenant details\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.name).to.equal('Updated Tenant Name');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Updated Tenant Name\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tenant/{{testTenantId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tenant",
+                    "{{testTenantId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "3.3 Delete Tenant",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () {",
+                      "    pm.response.to.have.status(204);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{adminAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tenant/{{testTenantId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tenant",
+                    "{{testTenantId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "4. URL Shortener Tests",
+          "item": [
+            {
+              "name": "4.1 Create Short URL",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains short URL details\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.shortUrl).to.exist;",
+                      "    pm.expect(responseData.originalUrl).to.exist;",
+                      "    pm.expect(responseData.userId).to.exist;",
+                      "});",
+                      "",
+                      "if (pm.response.code === 201) {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.collectionVariables.set('testUrlId', responseData.id);",
+                      "    pm.collectionVariables.set('testShortCode', responseData.shortCode);",
+                      "}"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{userAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"originalUrl\": \"https://www.example.com/very/long/url/that/needs/shortening\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/url",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "url"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4.1 Create URL with Invalid Format",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 400\", function () {",
+                      "    pm.response.to.have.status(400);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains URL validation error\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.message).to.exist;",
+                      "    pm.expect(responseData.error).to.include('Bad Request');",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{userAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"originalUrl\": \"not-a-valid-url\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/url",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "url"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4.1 Create URL with Special Characters",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.statusCode).to.eql(201)",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{userAccessToken}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"originalUrl\": \"https://example.com/spaces?q=test&special=!@#$%^&*()\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/url",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "url"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4.2 Redirect to Original URL",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/url/{{testShortCode}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "url",
+                    "{{testShortCode}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4.2 Handle Non-existent Short Code",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "",
+                      "pm.test(\"Response contains not found message\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData.message).to.include('not found');",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {}
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/url/daddadafafafa",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "url",
+                    "daddadafafafa"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "4.3 Get User URLs",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Response is an array\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    pm.expect(responseData).to.be.an('array');",
+                      "});",
+                      "",
+                      "pm.test(\"URLs belong to current user\", function () {",
+                      "    const responseData = pm.response.json();",
+                      "    responseData.forEach(function(url) {",
+                      "        pm.expect(url.userId).to.exist;",
+                      "    });",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{userAccessToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/urls",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "urls"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "testAdminEmail",
+      "value": "admin@test.com"
+    },
+    {
+      "key": "testAdminPassword",
+      "value": "Admin@123"
+    },
+    {
+      "key": "testUserEmail",
+      "value": "user@test.com"
+    },
+    {
+      "key": "testUserPassword",
+      "value": "User@123"
+    },
+    {
+      "key": "testTenantAdminEmail",
+      "value": "tenant.admin@test.com"
+    },
+    {
+      "key": "testTenantAdminPassword",
+      "value": "TenantAdmin@123"
+    },
+    {
+      "key": "testTenantId",
+      "value": "test-tenant"
+    },
+    {
+      "key": "adminAccessToken",
+      "value": ""
+    },
+    {
+      "key": "userAccessToken",
+      "value": ""
+    },
+    {
+      "key": "tenantAdminAccessToken",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "testUrlId",
+      "value": ""
+    },
+    {
+      "key": "testShortCode",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "wrongPasswordd",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "wrongPassword",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "InvalidEmail",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "nonExistentEmail",
+      "value": "",
+      "type": "default"
+    },
+    {
+      "key": "testUserId",
+      "value": "cm3qen6m80001z2wkxg2agkbl",
+      "type": "string"
+    },
+    {
+      "key": "tenantId",
+      "value": "test-tenant",
+      "type": "default"
+    }
+  ]
+}
