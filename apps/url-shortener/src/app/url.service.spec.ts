@@ -1,6 +1,6 @@
 import { CreateUrlDto, UpdateUrlDto } from './dtos';
 import { LoggerService } from '@url-shortener/logger';
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ShortCodeService } from './utils';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UrlRepository } from './url.repository';
@@ -34,7 +34,6 @@ describe('UrlService', () => {
 
   const mockUrlRepository = {
     create: jest.fn(),
-    findByShortCodeOrThrow: jest.fn(),
     findById: jest.fn(),
     findByUserId: jest.fn(),
     findByShortCode: jest.fn(),
@@ -118,12 +117,20 @@ describe('UrlService', () => {
 
   describe('getOriginalUrl', () => {
     it('should return original URL', async () => {
-      mockUrlRepository.findByShortCodeOrThrow.mockResolvedValue(mockUrl);
+      mockUrlRepository.findByShortCode.mockResolvedValue(mockUrl);
 
       const result = await service.getOriginalUrl('abc123');
 
       expect(result).toEqual({ originalUrl: mockUrl.originalUrl });
-      expect(repository.findByShortCodeOrThrow).toHaveBeenCalledWith('abc123');
+      expect(repository.findByShortCode).toHaveBeenCalledWith('abc123');
+    });
+
+    it('should throw NotFoundException when URL is not found', async () => {
+      mockUrlRepository.findByShortCode.mockResolvedValue(null);
+
+      await expect(service.getOriginalUrl('abc123')).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 
@@ -161,6 +168,14 @@ describe('UrlService', () => {
         },
       ]);
       expect(repository.findByUserId).toHaveBeenCalledWith(mockUserJWT.userId);
+    });
+
+    it('should throw NotFoundException when user has no URLs', async () => {
+      mockUrlRepository.findByUserId.mockResolvedValue([]);
+
+      await expect(service.getUserUrls(mockUserJWT)).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 
@@ -258,23 +273,32 @@ describe('UrlService', () => {
 
   describe('getUrlInfo', () => {
     it('should return URL info for URL owner', async () => {
-      mockUrlRepository.findByShortCodeOrThrow.mockResolvedValue(mockUrl);
+      mockUrlRepository.findByShortCode.mockResolvedValue(mockUrl);
 
       const result = await service.getUrlInfo('abc123', mockUserJWT);
 
       expect(result).toEqual(mockUrl);
-      expect(repository.findByShortCodeOrThrow).toHaveBeenCalledWith('abc123');
+      expect(repository.findByShortCode).toHaveBeenCalledWith('abc123');
     });
 
     it('should throw ForbiddenException for unauthorized access', async () => {
       const unauthorizedUrl = { ...mockUrl, userId: 'different-user' };
-      mockUrlRepository.findByShortCodeOrThrow.mockResolvedValue(
-        unauthorizedUrl
-      );
+      mockUrlRepository.findByShortCode.mockResolvedValue(unauthorizedUrl);
 
       await expect(service.getUrlInfo('abc123', mockUserJWT)).rejects.toThrow(
         ForbiddenException
       );
+    });
+  });
+
+  describe('countAccess', () => {
+    it('should call incrementClickCount', async () => {
+      const shortCode = 'abc123';
+      const spy = jest.spyOn(service, 'incrementClickCount');
+
+      await service.countAccess(shortCode);
+
+      expect(spy).toHaveBeenCalledWith(shortCode);
     });
   });
 });

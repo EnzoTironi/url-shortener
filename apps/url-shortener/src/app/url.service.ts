@@ -72,7 +72,7 @@ export class UrlService implements IUrlService {
   }
 
   async getOriginalUrl(shortCode: string): Promise<OriginalUrlResponse> {
-    const url = await this.findUrlByShortCode(shortCode);
+    const url = await this.urlRepository.findByShortCode(shortCode);
     if (!url) {
       throw new NotFoundException('URL not found');
     }
@@ -86,7 +86,10 @@ export class UrlService implements IUrlService {
   }
 
   async getUrlInfo(shortCode: string, userInfo: UserJWT): Promise<url> {
-    const url = await this.findUrlByShortCode(shortCode);
+    const url = await this.urlRepository.findByShortCode(shortCode);
+    if (!url) {
+      throw new NotFoundException('URL not found');
+    }
     this.ensureUserAuthorization(url, userInfo.userId!);
     return url;
   }
@@ -111,10 +114,6 @@ export class UrlService implements IUrlService {
       originalUrl: url.originalUrl,
       clickCount: url.clickCount,
     };
-  }
-
-  private async findUrlByShortCode(shortCode: string): Promise<url> {
-    return await this.urlRepository.findByShortCodeOrThrow(shortCode);
   }
 
   private async generateUniqueShortCode(): Promise<string> {

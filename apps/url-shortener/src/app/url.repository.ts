@@ -17,12 +17,6 @@ export class UrlRepository {
     });
   }
 
-  async findByShortCodeOrThrow(shortCode: string): Promise<url> {
-    return this.prisma.url.findUniqueOrThrow({
-      where: { shortCode },
-    });
-  }
-
   async findById(id: string): Promise<url> {
     return this.prisma.url.findUniqueOrThrow({
       where: { id },
