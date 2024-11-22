@@ -1,5 +1,3 @@
-import { Prisma } from '../../../../prisma-url/src';
-
 export interface PrismaErrorResponse {
   code: string;
   clientVersion: string;
@@ -11,22 +9,42 @@ export interface PrismaErrorResponse {
   message: string;
 }
 
+export interface PrismaClientKnownRequestError {
+  name: 'PrismaClientKnownRequestError';
+  code: string;
+  message: string;
+  clientVersion: string;
+  meta?: Record<string, any>;
+}
+
+export interface PrismaClientValidationError {
+  name: 'PrismaClientValidationError';
+  message: string;
+  clientVersion: string;
+}
+
 export function isPrismaError(
   error: unknown
-): error is Prisma.PrismaClientKnownRequestError {
+): error is PrismaClientKnownRequestError {
   return (
-    error instanceof Prisma.PrismaClientKnownRequestError ||
-    (error !== null &&
-      typeof error === 'object' &&
-      'code' in error &&
-      'clientVersion' in error &&
-      typeof (error as any).code === 'string' &&
-      (error as any).code.startsWith('P'))
+    error !== null &&
+    typeof error === 'object' &&
+    'code' in error &&
+    'clientVersion' in error &&
+    (error as any).name === 'PrismaClientKnownRequestError' &&
+    typeof (error as any).code === 'string' &&
+    (error as any).code.startsWith('P')
   );
 }
 
 export function isPrismaValidationError(
   error: unknown
-): error is Prisma.PrismaClientValidationError {
-  return error instanceof Prisma.PrismaClientValidationError;
+): error is PrismaClientValidationError {
+  return (
+    error !== null &&
+    typeof error === 'object' &&
+    'name' in error &&
+    'message' in error &&
+    (error as any).name === 'PrismaClientValidationError'
+  );
 }

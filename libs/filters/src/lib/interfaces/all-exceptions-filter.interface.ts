@@ -1,5 +1,8 @@
 import { HttpException } from '@nestjs/common';
-import { Prisma } from '../../../../prisma-url/src';
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
+} from './prisma-error.interface';
 
 export interface ErrorResponse {
   statusCode: number;
@@ -28,12 +31,12 @@ export interface LogContext extends Record<string, unknown> {
 
 export interface ErrorHandlers {
   handlePrismaKnownError(
-    exception: Prisma.PrismaClientKnownRequestError,
+    exception: PrismaClientKnownRequestError,
     path: string
   ): ErrorResponse;
 
   handlePrismaValidationError(
-    exception: Prisma.PrismaClientValidationError,
+    exception: PrismaClientValidationError,
     path: string
   ): ErrorResponse;
 

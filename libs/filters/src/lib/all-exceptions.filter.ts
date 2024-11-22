@@ -6,16 +6,17 @@ import {
   HttpStatus,
   Inject,
 } from '@nestjs/common';
+import { DefaultMessages, PrismaErrorMap } from './constansts';
 import { LoggerService } from '../../../logger/src';
-import { Prisma } from '../../../prisma-url/src';
 import { Request, Response } from 'express';
 import {
   isPrismaError,
   isPrismaValidationError,
   ErrorResponse,
   LogContext,
+  PrismaClientKnownRequestError,
+  PrismaClientValidationError,
 } from './interfaces/';
-import { DefaultMessages, PrismaErrorMap } from './constansts';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -51,7 +52,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   // Specific Error Handlers
   private handlePrismaKnownError(
-    exception: Prisma.PrismaClientKnownRequestError,
+    exception: PrismaClientKnownRequestError,
     path: string
   ): ErrorResponse {
     const error = this.prismaErrorMap[
@@ -71,7 +72,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   }
 
   private handlePrismaValidationError(
-    exception: Prisma.PrismaClientValidationError,
+    exception: PrismaClientValidationError,
     path: string
   ): ErrorResponse {
     return {
