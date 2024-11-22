@@ -78,3 +78,5 @@ url-shortener-cluster-config
 # Elasticsearch data
 elasticsearch-data/
 .vscode/
+
+!.env.example
